@@ -42,3 +42,4 @@ build/
 /api/v0.0.1/
 /bukkit/target/
 /api/target/
+/bukkit/dependency-reduced-pom.xml
