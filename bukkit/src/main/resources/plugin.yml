@@ -1,0 +1,8 @@
+name: ClosedBlocks
+version: '${project.version}'
+main: com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin
+api-version: '1.13'
+prefix: CB
+authors: [ KarmaDev ]
+description: ClosedBlocks is a plugin which adds elevators to minecraft in a easy way
+load: POSTWORLD

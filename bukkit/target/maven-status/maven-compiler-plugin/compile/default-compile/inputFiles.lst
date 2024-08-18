@@ -1,0 +1,15 @@
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\ClosedBlocksAPI.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\ClosedBlocksPlugin.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\event\BlockGriefListener.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\event\PlayerMotionListener.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\integrations\bukkit\BukkitIntegration.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\integrations\bukkit\events\BBlockPlaceRemoveListener.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\integrations\bukkit\events\BClosedBlockPlacedListener.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\integrations\bukkit\events\BClosedPluginListener.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\integrations\itemsadder\events\IAClosedBlockPlacedListener.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\integrations\itemsadder\events\ItemsAdderListener.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\integrations\itemsadder\ItemsAdderIntegration.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\provider\block\BlockSaveData.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\provider\block\ClosedBlockSettings.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\provider\block\ElevatorBlock.java
+D:\Users\hetol\IdeaProjects\ClosedBlocks\bukkit\src\main\java\com\github\karmadeb\closedblocks\plugin\provider\storage\ClosedBlocksStorage.java
