@@ -118,8 +118,7 @@ public class PlaceRemoveListener {
             return;
 
         Material material = item.getType();
-        if (!material.isBlock() || !material.isSolid() || ElevatorConfig.DISGUISE_BLACKLIST.get().contains(material.name()) ||
-                IntegrationUtils.isIllegalType(material)) {
+        if (IntegrationUtils.isIllegalType(material)) {
             ElevatorMessage.DISGUISE_FAILED_TYPE.send(player);
             return;
         }

@@ -1,6 +1,7 @@
 package com.github.karmadeb.closedblocks.plugin.integrations.shared;
 
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessage;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
@@ -42,12 +43,20 @@ public class IntegrationUtils {
     }
 
     public static boolean isIllegalType(final Material material) {
-        if (material.isInteractable() || material.equals(Material.TNT) ||
-                material.equals(Material.LEVER) || material.equals(Material.SHULKER_BOX)) return true;
+        if (validateMaterialItself(material)) return true;
         String name = material.name();
 
         return name.endsWith("_DOOR") || name.endsWith("_TRAPDOOR") || name.endsWith("_BUTTON") ||
                 name.endsWith("_SHULKER_BOX") || name.endsWith("_BANNER") || name.endsWith("_WALL_HANGING_SIGN") ||
                 name.endsWith("HANGING_SIGN") || name.endsWith("_SIGN");
+    }
+
+    private static boolean validateMaterialItself(Material material) {
+        if (material == null)
+            return true;
+
+        return !material.isBlock() || !material.isSolid() || ElevatorConfig.DISGUISE_BLACKLIST.get().contains(material.name()) ||
+                material.isInteractable() || material.equals(Material.TNT) ||
+                material.equals(Material.LEVER) || material.equals(Material.SHULKER_BOX);
     }
 }
