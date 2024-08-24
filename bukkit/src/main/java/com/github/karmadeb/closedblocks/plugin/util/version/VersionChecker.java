@@ -128,17 +128,17 @@ public final class VersionChecker {
 
     @SuppressWarnings("ConstantValue")
     public boolean isPolymartAgent() {
-        return !"%%__POLYMART__%%".equalsIgnoreCase(DOWNLOAD_AGENT_POLYMART);
+        return !DOWNLOAD_AGENT_POLYMART.contains("__POLYMART__");
     }
 
     @SuppressWarnings("ConstantValue")
     public boolean isBuiltByBitAgent() {
-        return !"%%__VERSION__%%".equalsIgnoreCase(DOWNLOAD_AGENT_BUILTBYBIT);
+        return !DOWNLOAD_AGENT_BUILTBYBIT.contains("__VERSION__");
     }
 
     @SuppressWarnings("ConstantValue")
     public boolean isSpigotMCAgent() {
-        return !"%%__RESOURCE__%%".equalsIgnoreCase(DOWNLOAD_AGENT_SPIGOTMC);
+        return !DOWNLOAD_AGENT_SPIGOTMC.contains("__RESOURCE__");
     }
 
     private String color(final String str) {

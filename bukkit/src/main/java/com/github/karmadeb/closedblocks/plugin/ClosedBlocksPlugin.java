@@ -124,7 +124,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
     @SuppressWarnings("ConstantValue")
     private void sendThanksMessage() {
-        if ("%%__USER__%%".equalsIgnoreCase(LICENSED_TO_USER_ID) && "%%__USERNAME__%%".equalsIgnoreCase(LICENSED_TO_USERNAME)) {
+        if (LICENSED_TO_USER_ID.contains("__USER__") && LICENSED_TO_USERNAME.contains("__USERNAME__")) {
             getLogger().warning("Self compiled version of ClosedBlocks detected. You won't receive official plugin updates!");
         } else {
             String username = LICENSED_TO_USERNAME;
