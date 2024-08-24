@@ -45,10 +45,11 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
+@SuppressWarnings("FieldCanBeLocal")
 public final class ClosedBlocksPlugin extends JavaPlugin {
 
-    private static final String LICENSED_TO_USER_ID = "%%__USER__%%";
-    private static final String LICENSED_TO_USERNAME = "%%__USERNAME__%%";
+    private final String LICENSED_TO_USER_ID = "%%__USER__%%";
+    private final String LICENSED_TO_USERNAME = "%%__USERNAME__%%";
 
     private final ClosedBlocksAPI api = new ClosedBlocksAPI(this);
     private final VersionChecker checker = new VersionChecker(this);
@@ -135,7 +136,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
                 }
             }
 
-            String profileURL = "";
+            String profileURL;
             if (this.checker.isPolymartAgent()) {
                 profileURL = "https://polymart.org/user/" + LICENSED_TO_USER_ID;
             } else if (this.checker.isBuiltByBitAgent()) {
