@@ -5,6 +5,7 @@ import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessa
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -38,5 +39,15 @@ public class IntegrationUtils {
         }
 
         ElevatorMessage.DESTROY_SUCCESS.send(player);
+    }
+
+    public static boolean isIllegalType(final Material material) {
+        if (material.isInteractable() || material.equals(Material.TNT) ||
+                material.equals(Material.LEVER) || material.equals(Material.SHULKER_BOX)) return true;
+        String name = material.name();
+
+        return name.endsWith("_DOOR") || name.endsWith("_TRAPDOOR") || name.endsWith("_BUTTON") ||
+                name.endsWith("_SHULKER_BOX") || name.endsWith("_BANNER") || name.endsWith("_WALL_HANGING_SIGN") ||
+                name.endsWith("HANGING_SIGN") || name.endsWith("_SIGN");
     }
 }
