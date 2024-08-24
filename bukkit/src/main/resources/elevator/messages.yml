@@ -1,0 +1,33 @@
+##############################################
+#        ClosedBlocks messages file          #
+#                                            #
+# https://www.spigotmc.org/resources/105696/ #
+##############################################
+
+PlacementSuccess: "&3Successfully placed elevator"
+PlacementFailed: "&dFailed to place elevator"
+PlacementTooClose: "&dThe elevator is too close to another elevator ({blocks} blocks min)"
+PlacementTooFar: "&eThe elevator is too far from another elevator ({blocks} blocks max)"
+
+DisguiseSuccess: "&3Successfully disguised elevator"
+DisguiseFailed: "&dFailed to disguise elevator"
+DisguisedFailedType: "&dFailed to disguise elevator. Disguise type is not allowed"
+DisguiseNotAllowed: "&dYou are not allowed to disguise that elevator"
+
+DestroySuccess: "&3Successfully removed elevator"
+DestroyFailed: "&dFailed to remove elevator"
+DestroyInventoryFull: "&dFailed to remove elevator. Your inventory is full"
+DestroyNotAllowed: "&dYou are not allowed to destroy that elevator"
+
+FloorUpTitle: "&3↟ &3Floor&3 ↟"
+FloorUpSubtitle: "&7{floor} &8&l| &7{floors}&3"
+
+FloorDownTitle: "&3↡ &3Floor&3 ↡"
+FloorDownSubtitle: "&7{floor} &8&l| &7{floors}&3"
+
+ViewAddName: "&bWrite the name of the player you want to allow to view the elevator. Or type&c .cancel&b to cancel"
+ViewRemoveName: "&bWrite the name of the player you want to deny to view the elevator. Or type&c .cancel&b to cancel"
+ViewAddSuccess: "&3Successfully added &7{player}"
+ViewAddFailed: "&dFailed to add&7 {player}"
+ViewRemoveSuccess: "&3Successfully removed &7{player}"
+ViewRemoveFailed: "&dFailed to remove&7 {player}"

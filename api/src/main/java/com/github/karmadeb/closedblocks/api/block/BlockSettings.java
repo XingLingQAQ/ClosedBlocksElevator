@@ -8,6 +8,7 @@ import java.util.Collection;
 /**
  * Represents a closed block settings
  */
+@SuppressWarnings("unused")
 public interface BlockSettings {
 
     /**
@@ -60,24 +61,6 @@ public interface BlockSettings {
     void setEnabled(final boolean enabled);
 
     /**
-     * Get if the block has particles
-     * enabled
-     *
-     * @return if the particles are enabled
-     * for the elevator
-     */
-    boolean hasParticles();
-
-    /**
-     * Set if the block displays
-     * particles
-     *
-     * @param status the particle display
-     *               status
-     */
-    void setParticles(final boolean status);
-
-    /**
      * Get if the block is visible
      *
      * @return if the block is visible
@@ -88,9 +71,10 @@ public interface BlockSettings {
     /**
      * Get if the block is visible for
      * everyone. When the elevator is set to
-     * be visible, nobody will see the "disguise"
-     * block, instead they will see the original
-     * block
+     * be visible, everyone will see the
+     * elevator particles, regardless of the
+     * block disguise status. Otherwise, only
+     * viewers will see the elevator particles
      *
      * @param visible the block visibility status
      */

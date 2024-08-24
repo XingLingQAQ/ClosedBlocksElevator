@@ -2,6 +2,8 @@ package com.github.karmadeb.closedblocks.plugin.integrations.itemsadder;
 
 import com.github.karmadeb.closedblocks.api.integration.Integration;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
+import com.github.karmadeb.closedblocks.plugin.integrations.itemsadder.events.IABlockPlaceRemoveListener;
+import com.github.karmadeb.closedblocks.plugin.integrations.itemsadder.events.IAClosedBlockPlacedListener;
 import com.github.karmadeb.closedblocks.plugin.integrations.itemsadder.events.ItemsAdderListener;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
@@ -9,10 +11,19 @@ import org.bukkit.event.HandlerList;
 public class ItemsAdderIntegration implements Integration {
 
     private final ClosedBlocksPlugin plugin;
-    private ItemsAdderListener pluginLoadListener;
+    private final Runnable onStepTwo;
 
-    public ItemsAdderIntegration(final ClosedBlocksPlugin plugin) {
+    private ItemsAdderListener pluginLoadListener;
+    private IABlockPlaceRemoveListener blockPlaceOrRemoveListener;
+    private IAClosedBlockPlacedListener apiBlockPlacedListener;
+
+    public ItemsAdderIntegration(final ClosedBlocksPlugin plugin, final Runnable onStepTwo) {
         this.plugin = plugin;
+        this.onStepTwo = onStepTwo;
+    }
+
+    public ClosedBlocksPlugin getPlugin() {
+        return this.plugin;
     }
 
     /**
@@ -31,11 +42,16 @@ public class ItemsAdderIntegration implements Integration {
     @Override
     public void load() {
         pluginLoadListener = new ItemsAdderListener(this);
+        blockPlaceOrRemoveListener = new IABlockPlaceRemoveListener(this);
+        apiBlockPlacedListener = new IAClosedBlockPlacedListener();
+
         plugin.getServer().getPluginManager().registerEvents(pluginLoadListener, plugin);
+        plugin.getServer().getPluginManager().registerEvents(blockPlaceOrRemoveListener, plugin);
+        plugin.getServer().getPluginManager().registerEvents(apiBlockPlacedListener, plugin);
     }
 
     public void loadStep2() {
-
+        this.onStepTwo.run();
     }
 
     /**
@@ -45,6 +61,12 @@ public class ItemsAdderIntegration implements Integration {
     public void unload() {
         if (pluginLoadListener != null)
             HandlerList.unregisterAll(pluginLoadListener);
+
+        if (blockPlaceOrRemoveListener != null)
+            HandlerList.unregisterAll(blockPlaceOrRemoveListener);
+
+        if (apiBlockPlacedListener != null)
+            HandlerList.unregisterAll(apiBlockPlacedListener);
     }
 
     /**
@@ -56,5 +78,12 @@ public class ItemsAdderIntegration implements Integration {
     @Override
     public boolean isSupported() {
         return Bukkit.getPluginManager().isPluginEnabled("ItemsAdder");
+    }
+
+    public boolean has(final String namespace) {
+        if (isSupported())
+            return dev.lone.itemsadder.api.CustomBlock.isInRegistry(namespace);
+
+        return false;
     }
 }

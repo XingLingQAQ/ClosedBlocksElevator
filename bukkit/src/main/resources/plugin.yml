@@ -1,8 +1,35 @@
-name: ClosedBlocks
+name: 'ClosedBlocks'
 version: '${project.version}'
-main: com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin
+main: 'com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin'
 api-version: '1.13'
-prefix: CB
-authors: [ KarmaDev ]
-description: ClosedBlocks is a plugin which adds elevators to minecraft in a easy way
-load: POSTWORLD
+prefix: 'CB'
+authors: [ 'KarmaDev' ]
+description: 'ClosedBlocks is a plugin which adds many blocks to minecraft in an easy way'
+load: 'POSTWORLD'
+
+softdepend: [ 'ItemsAdder' ]
+
+permissions:
+  closedblocks.view.all:
+    description: 'Permission to view all the blocks, regardless of their viewer configuration'
+    default: 'op'
+  closedblocks.destroy.all:
+    description: 'Permission to remove any block, regardless of the elevator owner'
+    default: 'op'
+  closedblocks.give:
+    description: 'Permission to give closed blocks'
+    default: 'op'
+    children:
+      closedblocks.give.elevator: true
+  closedblocks.give.elevator:
+    description: 'Permission to give closed blocks elevator blocks'
+    default: 'op'
+  closedblocks.reload:
+    description: 'Permission to reload closed blocks plugin'
+    default: 'op'
+
+commands:
+  closedblocks:
+    description: 'Main closed blocks command'
+    aliases:
+      - 'cb'

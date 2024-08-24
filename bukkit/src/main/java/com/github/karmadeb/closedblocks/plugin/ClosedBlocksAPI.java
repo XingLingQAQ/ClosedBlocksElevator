@@ -1,7 +1,11 @@
 package com.github.karmadeb.closedblocks.plugin;
 
 import com.github.karmadeb.closedblocks.api.ClosedAPI;
+import com.github.karmadeb.closedblocks.api.file.configuration.Configuration;
+import com.github.karmadeb.closedblocks.api.file.messages.Messages;
 import com.github.karmadeb.closedblocks.api.integration.Integration;
+import com.github.karmadeb.closedblocks.plugin.provider.file.ConfigurationFile;
+import com.github.karmadeb.closedblocks.plugin.provider.file.MessagesFile;
 import com.github.karmadeb.closedblocks.plugin.provider.storage.ClosedBlocksStorage;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,9 +18,13 @@ public class ClosedBlocksAPI extends ClosedAPI {
     private final Set<Integration> integrations = ConcurrentHashMap.newKeySet();
 
     private final ClosedBlocksPlugin plugin;
+    private final Messages messages;
+    private final Configuration configuration;
 
     public ClosedBlocksAPI(final ClosedBlocksPlugin plugin) {
         this.plugin = plugin;
+        this.messages = new MessagesFile(plugin);
+        this.configuration = new ConfigurationFile(plugin);
     }
 
     public void register() {
@@ -68,5 +76,25 @@ public class ClosedBlocksAPI extends ClosedAPI {
             plugin.getLogger().info("Unloading ClosedBlock integration " + integration.getName());
             integration.unload();
         }
+    }
+
+    /**
+     * Get the plugin messages
+     *
+     * @return the plugin messages
+     */
+    @Override
+    public Messages getMessages() {
+        return this.messages;
+    }
+
+    /**
+     * Get the plugin configuration
+     *
+     * @return the plugin configuration
+     */
+    @Override
+    public Configuration getConfig() {
+        return this.configuration;
     }
 }

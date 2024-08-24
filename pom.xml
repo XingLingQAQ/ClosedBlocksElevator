@@ -49,14 +49,29 @@
 						</execution>
 					</executions>
 					<configuration>
+						<shadedArtifactAttached>false</shadedArtifactAttached>
+
 						<relocations>
 							<relocation>
 								<pattern>es.karmadev.api.kson</pattern>
 								<shadedPattern>com.github.karmadeb.closedblocks.shaded.kson</shadedPattern>
 							</relocation>
 							<relocation>
+								<pattern>es.karmadev.api.kyle</pattern>
+								<shadedPattern>com.github.karmadeb.closedblocks.shaded.kyle</shadedPattern>
+							</relocation>
+							<relocation>
+								<pattern>es.karmadev.api.functional</pattern>
+								<shadedPattern>com.github.karmadeb.closedblocks.shaded.spigot</shadedPattern>
+							</relocation>
+
+							<relocation>
 								<pattern>de.tr7zw.changeme.nbtapi</pattern>
 								<shadedPattern>com.github.karmadeb.closedblocks.shaded.nbtapi</shadedPattern>
+							</relocation>
+							<relocation>
+								<pattern>com.github.fierioziy.particlenativeapi</pattern>
+								<shadedPattern>com.github.karmadeb.closedblocks.shaded.particlenativeapi</shadedPattern>
 							</relocation>
 						</relocations>
 					</configuration>
@@ -81,10 +96,20 @@
 			<id>sonatype</id>
 			<url>https://oss.sonatype.org/content/groups/public/</url>
 		</repository>
+
 		<repository>
-			<id>gitlab-maven</id>
+			<id>gitlab-maven-kson</id>
 			<url>https://gitlab.com/api/v4/projects/57344501/packages/maven</url>
 		</repository>
+		<repository>
+			<id>gitlab-maven-kyle</id>
+			<url>https://gitlab.com/api/v4/projects/59360812/packages/maven</url>
+		</repository>
+		<repository>
+			<id>gitlab-maven-functional</id>
+			<url>https://gitlab.com/api/v4/projects/59151351/packages/maven</url>
+		</repository>
+
 		<repository>
 			<id>jitpack-repo</id>
 			<url>https://jitpack.io</url>

@@ -9,7 +9,9 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("unused")
 public class ElevatorBlock implements Elevator {
 
     private final OfflinePlayer owner;
@@ -21,14 +23,24 @@ public class ElevatorBlock implements Elevator {
     private final SaveData saveData;
 
     private ElevatorBlock next;
-    private int level;
+    private int floor;
+    /*
+    Atomic integer is the best choice here. Why?
+    Because then we will only need to update the
+    value only from one elevator, to apply the value
+    to all the other ones
+     */
+    private final AtomicInteger floors;
     private ElevatorBlock previous;
 
-    public ElevatorBlock(final OfflinePlayer owner, final World world, final int x, final int y, final int z, final ClosedBlocksPlugin plugin) {
-        this(owner, world, x, y, z, new ClosedBlockSettings(), plugin);
+    public ElevatorBlock(final OfflinePlayer owner, final World world, final int x, final int y, final int z, final String disguise,
+                         final AtomicInteger floors,
+                         final ClosedBlocksPlugin plugin) {
+        this(owner, world, x, y, z, floors, new ClosedBlockSettings(disguise), plugin);
     }
 
     public ElevatorBlock(final OfflinePlayer owner, final World world, final int x, final int y, final int z,
+                         final AtomicInteger floors,
                          final ClosedBlockSettings settings,
                          final ClosedBlocksPlugin plugin) {
         this.owner = owner;
@@ -36,6 +48,8 @@ public class ElevatorBlock implements Elevator {
         this.x = x;
         this.y = y;
         this.z = z;
+
+        this.floors = floors;
 
         this.settings = settings;
         this.saveData = new BlockSaveData(plugin, this);
@@ -74,12 +88,31 @@ public class ElevatorBlock implements Elevator {
      * @return the current elevator level
      */
     @Override
-    public int getLevel() {
-        return this.level;
+    public int getFloor() {
+        return this.floor;
     }
 
-    public void setLevel(final int level) {
-        this.level = level;
+    public void setFloor(final int floor) {
+        this.floor = floor;
+    }
+
+    public AtomicInteger getFloorAtomic() {
+        return this.floors;
+    }
+
+    /**
+     * Get the amount of floors
+     * in this elevator
+     *
+     * @return the elevator floors
+     */
+    @Override
+    public int getFloors() {
+        return this.floors.get();
+    }
+
+    public void setFloors(final int floors) {
+        this.floors.set(floors);
     }
 
     /**

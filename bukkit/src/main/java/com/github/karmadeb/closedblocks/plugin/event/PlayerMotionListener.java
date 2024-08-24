@@ -1,11 +1,12 @@
 package com.github.karmadeb.closedblocks.plugin.event;
 
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
+import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
+import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessage;
 import com.github.karmadeb.closedblocks.api.util.NullableChain;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -70,7 +71,7 @@ public class PlayerMotionListener implements Listener {
 
         if (cb.hasPrevious()) {
             Elevator pre = cb.getPrevious().orElse(null);
-            useElevator(pre, player, downSound);
+            useElevator(cb, pre, player, ElevatorMessage.FLOOR_DOWN_TITLE, ElevatorMessage.FLOOR_DOWN_SUBTITLE, downSound);
         }
     }
 
@@ -123,11 +124,11 @@ public class PlayerMotionListener implements Listener {
 
         if (cb.hasNext()) {
             Elevator next = cb.getNext().orElse(null);
-            useElevator(next, player, upSound);
+            useElevator(cb, next, player, ElevatorMessage.FLOOR_UP_TITLE, ElevatorMessage.FLOOR_UP_SUBTITLE, upSound);
         }
     }
 
-    private void useElevator(final Elevator elevator, final Player player, final Sound useSound) {
+    private void useElevator(final Elevator current, final Elevator elevator, final Player player, final ElevatorMessage title, final ElevatorMessage subtitle, final Sound useSound) {
         if (elevator == null) return;
 
         Location newLocation = player.getLocation().clone();
@@ -136,14 +137,15 @@ public class PlayerMotionListener implements Listener {
         newLocation.setZ(elevator.getZ() + 0.5);
 
         player.teleport(newLocation);
-        playElevatorUseSound(player, useSound, elevator.getLevel());
+        playElevatorUseSound(player, title, subtitle, useSound, elevator, Math.abs(elevator.getY() - current.getY()));
     }
 
-    private void playElevatorUseSound(final Player player, final Sound upSound, final int level) {
-        player.sendTitle(ChatColor.translateAlternateColorCodes('&', "&3Elevator level:"),
-                ChatColor.translateAlternateColorCodes('&', "&e" + level),
+    private void playElevatorUseSound(final Player player, final ElevatorMessage title, final ElevatorMessage subtitle, final Sound playSound,
+                                      final Elevator elevator, final int blocks) {
+        player.sendTitle(title.parse(MessageParameter.floor(elevator), MessageParameter.floors(elevator), MessageParameter.blocks(blocks)),
+                subtitle.parse(MessageParameter.floor(elevator), MessageParameter.floors(elevator), MessageParameter.blocks(blocks)),
                 0, 20 * 3, 0);
-        player.playSound(player.getLocation(), upSound, 2f, 2f);
+        player.playSound(player.getLocation(), playSound, 2f, 2f);
 
         BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             denyUpLevel.remove(player.getUniqueId());

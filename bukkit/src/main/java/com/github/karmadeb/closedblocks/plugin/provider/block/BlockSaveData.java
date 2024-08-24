@@ -52,8 +52,9 @@ public class BlockSaveData implements SaveData {
             yPos.put("name", settings.getName());
             yPos.put("disguise", settings.getDisguise());
             yPos.put("enabled", settings.isEnabled());
-            yPos.put("particles", settings.hasParticles());
             yPos.put("visible", settings.isVisible());
+            if (yPos.hasChild("particles"))
+                yPos.removeChild("particles");
 
             JsonArray array = JsonArray.newArray(getJsonFullPath(yPos), "viewers");
             settings.getViewers().forEach((e) -> array.add(e.toString()));
@@ -94,8 +95,14 @@ public class BlockSaveData implements SaveData {
                 jWriter.export(writer);
             }
 
-            if (block instanceof ElevatorBlock)
+            if (block instanceof ElevatorBlock) {
+                ElevatorBlock eb = (ElevatorBlock) block;
+                eb.getFloorAtomic().set(
+                        eb.getFloorAtomic().get() - 1
+                );
+
                 remapElevatorLevels();
+            }
 
             World world = block.getWorld();
             Block blockAt = world.getBlockAt(block.getX(), y, block.getZ());
@@ -124,7 +131,7 @@ public class BlockSaveData implements SaveData {
 
         ElevatorBlock curr = nxt;
         while (curr != null) {
-            curr.setLevel(curr.getLevel() - 1);
+            curr.setFloor(curr.getFloor() - 1);
             curr = (ElevatorBlock) curr.getNext().orElse(null);
         }
     }

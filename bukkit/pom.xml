@@ -40,11 +40,36 @@
 			<version>1.0.8-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>es.karmadev.api</groupId>
+			<artifactId>Kyle</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.yaml</groupId>
+					<artifactId>snakeyaml</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>es.karmadev.api</groupId>
+			<artifactId>FunctionalInventory</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>de.tr7zw</groupId>
 			<artifactId>item-nbt-api</artifactId>
 			<version>2.13.2</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.fierioziy.particlenativeapi</groupId>
+			<artifactId>ParticleNativeAPI-core</artifactId>
+			<version>4.3.0</version>
 			<scope>compile</scope>
 		</dependency>
 

@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Represents the storage of all blocks
  */
+@SuppressWarnings("unused")
 public abstract class BlockStorage {
 
     /**
@@ -76,10 +77,11 @@ public abstract class BlockStorage {
      * @return the matching blocks
      */
     @NotNull
-    public Collection<ClosedBlock> getAllBlocks(final @NotNull Class<? extends ClosedBlock> type) {
+    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @NotNull Class<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type))
+                .map(type::cast)
                 .collect(Collectors.toList()));
     }
 
@@ -123,11 +125,12 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public Collection<ClosedBlock> getAllBlocks(final @NotNull OfflinePlayer owner, final @NotNull Class<? extends ClosedBlock> type) {
+    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @NotNull OfflinePlayer owner, final @NotNull Class<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type)
                         .and(byOwner(owner)))
+                .map(type::cast)
                 .collect(Collectors.toList()));
     }
 
@@ -142,11 +145,12 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public Collection<ClosedBlock> getAllBlocks(final @NotNull World world, final @NotNull Class<? extends ClosedBlock> type) {
+    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @NotNull World world, final @NotNull Class<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type)
                         .and(byWorld(world)))
+                .map(type::cast)
                 .collect(Collectors.toList()));
     }
 
@@ -182,11 +186,12 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public Collection<ClosedBlock> getAllBlocks(final @Nullable World world, final @Nullable OfflinePlayer owner, final @NotNull Class<? extends ClosedBlock> type) {
+    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @Nullable World world, final @Nullable OfflinePlayer owner, final @NotNull Class<T> type) {
         return this.getAllBlocks().stream()
                 .filter(byType(type)
                         .and(byOwner(owner))
                         .and(byWorld(world)))
+                .map(type::cast)
                 .collect(Collectors.toList());
     }
 

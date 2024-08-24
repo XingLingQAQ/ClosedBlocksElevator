@@ -12,43 +12,51 @@ public interface Elevator extends ClosedBlock {
 
     /**
      * Get if the elevator has a
-     * previous level
+     * previous floor
      *
      * @return if the elevator has previous
-     * level
+     * floor
      */
     boolean hasPrevious();
 
     /**
      * Get the previous elevator
-     * level
+     * floor
      *
-     * @return the previous level
+     * @return the previous floor
      */
     @NotNull
     Optional<Elevator> getPrevious();
 
     /**
-     * Get the elevator level
+     * Get the elevator floor
      *
-     * @return the current elevator level
+     * @return the current elevator floor
      */
-    int getLevel();
+    int getFloor();
+
+    /**
+     * Get the amount of floors
+     * in this elevator
+     *
+     * @return the elevator floors
+     */
+    int getFloors();
 
     /**
      * Get the next elevator
-     * level
+     * floor
      *
-     * @return the next level
+     * @return the next floor
      */
     @NotNull
     Optional<Elevator> getNext();
 
     /**
      * Get if the elevator has a
-     * next level
+     * next floor
      *
-     * @return if the elevator has next level
+     * @return if the elevator has next floor
      */
     boolean hasNext();
 }

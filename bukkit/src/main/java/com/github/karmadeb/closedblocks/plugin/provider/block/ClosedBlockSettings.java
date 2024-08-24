@@ -17,20 +17,20 @@ public class ClosedBlockSettings implements BlockSettings {
     private static final String EMPTY_STRING = "";
 
     private String name = EMPTY_STRING;
-    private String disguise = EMPTY_STRING;
+    private String disguise;
     private boolean enabled = true;
-    private boolean particles = true;
     private boolean visible = false;
     private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
 
-    public ClosedBlockSettings() {}
+    public ClosedBlockSettings(final String disguise) {
+        this.disguise = disguise;
+    }
 
-    public ClosedBlockSettings(final @NotNull String name, final @NotNull String disguise, final boolean enabled,
-                               final boolean particles, final boolean visible, final @NotNull Collection<UUID> viewers) {
+    public ClosedBlockSettings(final @NotNull String name, final @NotNull String disguise, final boolean enabled, final boolean visible,
+                               final @NotNull Collection<UUID> viewers) {
         this.name = name;
         this.disguise = disguise;
         this.enabled = enabled;
-        this.particles = particles;
         this.visible = visible;
         this.viewers.addAll(viewers);
     }
@@ -101,30 +101,6 @@ public class ClosedBlockSettings implements BlockSettings {
     }
 
     /**
-     * Get if the block has particles
-     * enabled
-     *
-     * @return if the particles are enabled
-     * for the elevator
-     */
-    @Override
-    public boolean hasParticles() {
-        return this.particles;
-    }
-
-    /**
-     * Set if the block displays
-     * particles
-     *
-     * @param status the particle display
-     *               status
-     */
-    @Override
-    public void setParticles(final boolean status) {
-        this.particles = status;
-    }
-
-    /**
      * Get if the block is visible
      *
      * @return if the block is visible
@@ -138,9 +114,10 @@ public class ClosedBlockSettings implements BlockSettings {
     /**
      * Get if the block is visible for
      * everyone. When the elevator is set to
-     * be visible, nobody will see the "disguise"
-     * block, instead they will see the original
-     * block
+     * be visible, everyone will see the
+     * elevator particles, regardless of the
+     * block disguise status. Otherwise, only
+     * viewers will see the elevator particles
      *
      * @param visible the block visibility status
      */

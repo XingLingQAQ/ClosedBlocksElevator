@@ -1,0 +1,39 @@
+##############################################
+#        ClosedBlocks configuration          #
+#                                            #
+# https://www.spigotmc.org/resources/105696/ #
+##############################################
+
+# Default elevator disguise
+Disguise: "QUARTZ_BLOCK"
+
+# Elevators max distance
+MaxDistance: 64
+
+# Griefing configuration for
+# elevator blocks.
+#
+# AllowBreak: Allows break by anyone, regardless
+#             of the owner of the elevator
+# AllowExplode: Allows explosions to break the
+#               elevator
+# AllowBurn: Allows fire to burn the elevator
+#            block
+# AllowGrief: Allows entities to grief the elevator
+#             block. For example, an entity which could
+#             grief blocks is the Enderman
+Griefing:
+  AllowBreak: false
+  AllowExplode: false
+  AllowBurn: false
+  AllowGrief: false
+
+# Blocks which are not allowed to be
+# used as disguise for elevators
+DisguiseBlacklist:
+  - "BEDROCK"
+  - "DRAGON_EGG"
+  - "CHEST"
+  - "TRAP_CHEST"
+  - "ENDER_CHEST"
+  - "END_CRYSTAL"

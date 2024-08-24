@@ -3,13 +3,19 @@ package com.github.karmadeb.closedblocks.plugin.integrations.bukkit;
 import com.github.karmadeb.closedblocks.api.integration.Integration;
 import com.github.karmadeb.closedblocks.api.util.NullableChain;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
+import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BBlockInteractionListener;
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BBlockPlaceRemoveListener;
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BClosedBlockPlacedListener;
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BClosedPluginListener;
 import de.tr7zw.changeme.nbtapi.NBT;
+import de.tr7zw.changeme.nbtapi.iface.ReadableItemNBT;
+import dev.lone.itemsadder.api.CustomBlock;
 import es.karmadev.api.kson.*;
 import es.karmadev.api.kson.io.JsonReader;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.Registry;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -19,27 +25,31 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("SameParameterValue")
 public class BukkitIntegration implements Integration {
 
     private static final String TYPE_ELEVATOR = "elevator";
     private final ClosedBlocksPlugin plugin;
 
-    private final List<NamespacedKey> registeredRecipes = new ArrayList<>();
+    private final List<ShapedRecipe> registeredRecipes = new ArrayList<>();
 
     private BBlockPlaceRemoveListener blockPlaceOrRemoveListener;
     private BClosedPluginListener pluginStateListener;
     private BClosedBlockPlacedListener apiBlockPlacedListener;
+    private BBlockInteractionListener interactionListener;
 
     public BukkitIntegration(final ClosedBlocksPlugin plugin) {
         this.plugin = plugin;
@@ -70,10 +80,12 @@ public class BukkitIntegration implements Integration {
         blockPlaceOrRemoveListener = new BBlockPlaceRemoveListener(this);
         pluginStateListener = new BClosedPluginListener(this);
         apiBlockPlacedListener = new BClosedBlockPlacedListener(this);
+        interactionListener = new BBlockInteractionListener(this);
 
         Bukkit.getPluginManager().registerEvents(blockPlaceOrRemoveListener, plugin);
         Bukkit.getPluginManager().registerEvents(pluginStateListener, plugin);
         Bukkit.getPluginManager().registerEvents(apiBlockPlacedListener, plugin);
+        Bukkit.getPluginManager().registerEvents(interactionListener, plugin);
     }
 
     /**
@@ -81,11 +93,14 @@ public class BukkitIntegration implements Integration {
      */
     @Override
     public void unload() {
-        registeredRecipes.forEach(Bukkit::removeRecipe);
+        try {
+            registeredRecipes.forEach((recipe) -> Bukkit.removeRecipe(recipe.getKey()));
+        } catch (Throwable ignored) {}
 
         HandlerList.unregisterAll(blockPlaceOrRemoveListener);
         HandlerList.unregisterAll(pluginStateListener);
         HandlerList.unregisterAll(apiBlockPlacedListener);
+        HandlerList.unregisterAll(interactionListener);
     }
 
     /**
@@ -99,10 +114,12 @@ public class BukkitIntegration implements Integration {
         return true;
     }
 
-    public void reloadRecipes() {
-        registeredRecipes.forEach(Bukkit::removeRecipe);
-        if (failsToLoadRecipes(TYPE_ELEVATOR))
-            return;
+    public boolean reloadRecipes() {
+        try {
+            registeredRecipes.forEach((recipe) -> Bukkit.removeRecipe(recipe.getKey()));
+        } catch (Throwable ignored) {}
+
+        return !failsToLoadRecipes(TYPE_ELEVATOR);
     }
 
     @Nullable
@@ -119,6 +136,17 @@ public class BukkitIntegration implements Integration {
 
     public boolean isValidMaterial(final Material material) {
         return material != null && material.isBlock();
+    }
+
+    public ItemStack createElevatorItem() {
+        for (ShapedRecipe recipe : this.registeredRecipes) {
+            ItemStack item = recipe.getResult();
+            if (!NBT.get(item, (Function<ReadableItemNBT, Boolean>) (data) -> data.getString("closed_type").equals("elevator"))) continue;
+
+            return item;
+        }
+
+        return null;
     }
 
     private Material getByRegistry(final String material) {
@@ -180,7 +208,7 @@ public class BukkitIntegration implements Integration {
         if (failsToCreateDirectory(typeRecipesDirectory))
             return true;
 
-        if (exportRecipe && failsToExportResource(type + ".recipe.json", typeRecipesDirectory.resolve("default.json")))
+        if (exportRecipe && failsToExportResource(String.format("%s/default.recipe.json", type), typeRecipesDirectory.resolve("default.json")))
             return true;
 
         Collection<Path> files = listDirectory(typeRecipesDirectory);
@@ -197,7 +225,7 @@ public class BukkitIntegration implements Integration {
                 continue;
             }
 
-            registeredRecipes.add(recipe.getKey());
+            registeredRecipes.add(recipe);
             recipeCount++;
         }
 
@@ -262,17 +290,17 @@ public class BukkitIntegration implements Integration {
             JsonArray keyArray = key.asArray();
             String keyChar = keyArray.getKey();
 
-            List<Material> choices = parseMaterialChoices(keyArray);
+            List<ItemStack> choices = parseMaterialChoices(keyArray);
 
-            RecipeChoice choice = new RecipeChoice.MaterialChoice(choices);
+            RecipeChoice choice = new RecipeChoice.ExactChoice(choices);
             recipe.setIngredient(keyChar.charAt(0), choice);
         }
 
         return recipe;
     }
 
-    private @NotNull List<Material> parseMaterialChoices(JsonArray keyArray) {
-        List<Material> choices = new ArrayList<>();
+    private @NotNull List<ItemStack> parseMaterialChoices(JsonArray keyArray) {
+        List<ItemStack> choices = new ArrayList<>();
         for (JsonInstance element : keyArray) {
             if (!element.isNativeType())
                 continue;
@@ -283,10 +311,18 @@ public class BukkitIntegration implements Integration {
 
             String rawMaterial = nat.asString();
             Material parsedMaterial = getMatchingMaterial(rawMaterial, (ignored) -> true, () -> null);
-            if (parsedMaterial == null)
-                continue;
+            ItemStack item;
+            if (parsedMaterial == null) {
+                if (plugin.getItemsAdderIntegration().has(rawMaterial)) {
+                    item = CustomBlock.getInstance(rawMaterial).getItemStack();
+                } else {
+                    continue;
+                }
+            } else {
+                item = new ItemStack(parsedMaterial);
+            }
 
-            choices.add(parsedMaterial);
+            choices.add(item);
         }
 
         return choices;
@@ -295,7 +331,7 @@ public class BukkitIntegration implements Integration {
     @SuppressWarnings("deprecation")
     private ShapedRecipe createNamelessRecipe(final ItemStack result, final String name, final int recipeCount) {
         try {
-            NamespacedKey key = NamespacedKey.fromString(String.format("%s_%d", name, recipeCount), plugin);
+            org.bukkit.NamespacedKey key = org.bukkit.NamespacedKey.fromString(String.format("%s_%d", name, recipeCount), plugin);
             if (key == null)
                 return null;
 
@@ -316,6 +352,9 @@ public class BukkitIntegration implements Integration {
         JsonObject resolves = resolvesInstance.asObject();
 
         String rawType = getString(resolves, "type");
+        if (plugin.getItemsAdderIntegration().has(rawType))
+            return parseIAItem(rawType, resolves);
+
         Material type = getMatchingMaterial(rawType, (ignored) -> true, () -> null);
         if (type == null) {
             plugin.getLogger().warning("Failed to parse " + rawType + " as a recipe material because it doesn't exist or is not a block");
@@ -324,9 +363,22 @@ public class BukkitIntegration implements Integration {
 
         ItemStack item = new ItemStack(type);
 
+        if (failsToApplyStatsToItemStack(item, resolves)) return null;
+        return item;
+    }
+
+    private ItemStack parseIAItem(final String name, final JsonObject resolves) {
+        CustomBlock block = CustomBlock.getInstance(name);
+        ItemStack stack = block.getItemStack();
+        if (failsToApplyStatsToItemStack(stack, resolves)) return null;
+
+        return stack;
+    }
+
+    private boolean failsToApplyStatsToItemStack(final ItemStack item, final JsonObject resolves) {
         String name = getString(resolves, "name");
         if (name == null)
-            return null;
+            return true;
 
         List<String> lore = getArrayList(resolves, "description");
         NBT.modify(item, (modifier) -> {
@@ -338,7 +390,7 @@ public class BukkitIntegration implements Integration {
             modifier.setString("closed_type", "elevator");
         });
 
-        return item;
+        return false;
     }
 
     private String getString(final JsonObject data, final String key) {
@@ -460,17 +512,15 @@ public class BukkitIntegration implements Integration {
     }
 
     private boolean failsToExportResource(final String resource, final Path destination) {
-        try {
-            plugin.saveResource(resource, true);
-            Path exported = plugin.getDataPath().resolve("elevator.recipe.json");
-            if (!Files.exists(exported))
-                return true;
+        try(InputStream stream = plugin.getResource(resource)) {
+            if (stream == null)
+                throw new NullPointerException("Failed to export resource " + resource);
 
             Path directory = destination.getParent();
             if (failsToCreateDirectory(directory))
                 return true;
 
-            Files.move(exported, destination);
+            Files.copy(stream, destination);
             return false;
         } catch (Throwable ex) {
             plugin.getLogger().severe("Failed to export default elevator recipe");

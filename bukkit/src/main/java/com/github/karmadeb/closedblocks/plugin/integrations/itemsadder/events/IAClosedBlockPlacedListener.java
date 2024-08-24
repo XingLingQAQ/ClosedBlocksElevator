@@ -11,7 +11,7 @@ import org.bukkit.event.Listener;
 
 public class IAClosedBlockPlacedListener implements Listener {
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onClosedBlockPlaced(final ClosedBlockPlacedEvent e) {
         if (e.isHandled()) //Handled by another integration
             return;

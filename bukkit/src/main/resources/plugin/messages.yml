@@ -1,0 +1,37 @@
+##############################################
+#        ClosedBlocks messages file          #
+#                                            #
+# https://www.spigotmc.org/resources/105696/ #
+##############################################
+
+Permission: "&dYou don't have the permission &7{permission}"
+InvalidAction: "&dInvalid action. Valid actions are&7: {actions}"
+IncompleteAction: "&dInvalid or incomplete action. Run &8\"&7{label} help {action}&8\"&d for help"
+
+HelpTitle: "&8&m------&3 ClosedBlocks &8&m------"
+HelpInlineGive: "&8/&7{label} give &8- &fGives a closed block to a player"
+HelpInlineReload: "&8/&7{label} reload &8- &fReloads the plugin files and recipes"
+
+HelpGive:
+  - "&7Gives the&d [player]&7 a closed block"
+  - "&dParameters:"
+  - "  &8-&7 <&3block type&7> &8- &fThe closed block type"
+  - "  &8-&7 <&3player&7>     &8- &fThe player to give the elevator"
+  - "  &8-&7 [&3amount&7]     &8- &fThe amount of blocks to give"
+  - "&dPermissions:"
+  - "  &8- &7closedblocks.give"
+  - "  &8- &7closedblocks.give.&d<&3block type&d>"
+HelpReload:
+  - "&7Reloads the plugin files and recipes"
+  - "&dPermissions:"
+  - "  &8- &7closedblocks.reload"
+
+ReloadSuccess: "&3Successfully reloaded ClosedBlocks files and recipes"
+ReloadFailed: "&dFailed to reload ClosedBlocks files and recipes"
+
+GiveUnknownBlock: "&dFailed to give closed block to&7 {player}&d. Unknown type:&7 {type}"
+GivePlayerOffline: "&dFailed to give closed block to&7 {player}&d. Player is offline"
+GiveInvalidAmount: "&dFailed to give closed block to&7 {player}&d. Specified amount is invalid"
+GiveInventoryFull: "&dFailed to give closed block to&7 {player}&d. Target inventory only has &7{slots}&d available slots"
+GiveSuccess: "&3Successfully give&7 {amount}&3 blocks of &7{type}&3 to&7 {player}"
+GiveReceived: "&3You've received &7{amount}&3 blocks of &7{type}&3 from&7 {player}"

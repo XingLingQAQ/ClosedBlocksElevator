@@ -1,13 +1,18 @@
 package com.github.karmadeb.closedblocks.plugin;
 
+import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
+import com.github.fierioziy.particlenativeapi.api.utils.ParticleException;
+import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import com.github.karmadeb.closedblocks.api.event.plugin.ClosedPluginStateChangedEvent;
-import com.github.karmadeb.closedblocks.api.integration.Integration;
+import com.github.karmadeb.closedblocks.plugin.command.ClosedBlockCommand;
 import com.github.karmadeb.closedblocks.plugin.event.BlockGriefListener;
 import com.github.karmadeb.closedblocks.plugin.event.PlayerMotionListener;
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.BukkitIntegration;
 import com.github.karmadeb.closedblocks.plugin.integrations.itemsadder.ItemsAdderIntegration;
 import com.github.karmadeb.closedblocks.plugin.provider.block.ClosedBlockSettings;
 import com.github.karmadeb.closedblocks.plugin.provider.block.ElevatorBlock;
+import com.github.karmadeb.closedblocks.plugin.util.ElevatorVisualizer;
+import com.github.karmadeb.closedblocks.plugin.util.ParticleUtils;
 import de.tr7zw.changeme.nbtapi.NBT;
 import es.karmadev.api.kson.JsonArray;
 import es.karmadev.api.kson.JsonInstance;
@@ -18,15 +23,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.event.HandlerList;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Stream;
@@ -35,8 +44,14 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
     private final ClosedBlocksAPI api = new ClosedBlocksAPI(this);
 
+    private BukkitIntegration bukkitIntegration;
+    private ItemsAdderIntegration itemsAdderIntegration;
     private PlayerMotionListener motionListener;
     private BlockGriefListener griefListener;
+    private ParticleUtils particleAPI;
+    private ElevatorVisualizer visualizer;
+
+    private PluginCommand closedBlockCommand;
 
     @Override
     public void onEnable() {
@@ -55,20 +70,53 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
             return;
         }
 
-        Integration bukkitIntegration = new BukkitIntegration(this);
-        Integration itemsAdderIntegration = new ItemsAdderIntegration(this);
+        Runnable task = () -> {
+            bukkitIntegration = new BukkitIntegration(this);
+            api.addIntegration(bukkitIntegration);
 
-        api.addIntegration(bukkitIntegration);
+            motionListener = new PlayerMotionListener(this);
+            griefListener = new BlockGriefListener(this);
+            getServer().getPluginManager().registerEvents(motionListener, this);
+            getServer().getPluginManager().registerEvents(griefListener, this);
+
+            ParticleNativeAPI pna = null;
+            try {
+                pna = ParticleNativeCore.loadAPI(this);
+            } catch (ParticleException ex) {
+                this.getLogger().log(Level.SEVERE, "Failed to enable particle API. Particles won't be displayed", ex);
+            }
+
+            this.particleAPI = new ParticleUtils(this, pna);
+            this.visualizer = new ElevatorVisualizer(this);
+            this.visualizer.start();
+        };
+        itemsAdderIntegration = new ItemsAdderIntegration(this, task);
         api.addIntegration(itemsAdderIntegration);
 
-        motionListener = new PlayerMotionListener(this);
-        griefListener = new BlockGriefListener();
-        getServer().getPluginManager().registerEvents(motionListener, this);
-        getServer().getPluginManager().registerEvents(griefListener, this);
+        if (!itemsAdderIntegration.isSupported())
+            task.run();
+
+        closedBlockCommand = this.getCommand("closedblocks");
+        if (closedBlockCommand == null) {
+            this.getLogger().severe("Invalid or corrupt plugin.yml. Missing closedblocks command, disabling plugin...");
+            this.getPluginLoader().disablePlugin(this);
+
+            return;
+        }
+
+        ClosedBlockCommand executor = new ClosedBlockCommand(this);
+        closedBlockCommand.setExecutor(executor);
+        closedBlockCommand.setTabCompleter(executor);
     }
 
     @Override
     public void onDisable() {
+        if (this.visualizer != null)
+            this.visualizer.kill();
+
+        if (this.closedBlockCommand != null)
+            this.closedBlockCommand.unregister(getBukkitCommandMap());
+
         api.shutdown();
 
         HandlerList.unregisterAll(motionListener);
@@ -80,6 +128,29 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
     public Path getDataPath() {
         return this.getDataFolder().toPath();
+    }
+
+    public BukkitIntegration getBukkitIntegration() {
+        return this.bukkitIntegration;
+    }
+
+    public ItemsAdderIntegration getItemsAdderIntegration() {
+        return this.itemsAdderIntegration;
+    }
+
+    public ParticleUtils getParticleAPI() {
+        return this.particleAPI;
+    }
+
+    private CommandMap getBukkitCommandMap() {
+        try {
+            Field field = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            field.setAccessible(true);
+
+            return (CommandMap) field.get(Bukkit.getServer());
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private void loadCachedBlocks() {
@@ -166,6 +237,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
     private void handleYAxisElevators(final OfflinePlayer owner, final World world, final int x, final int z, final JsonObject elevators) {
         List<ElevatorBlock> parsedElevators = new ArrayList<>();
+        AtomicInteger floors = new AtomicInteger();
 
         for (String rawY : elevators.getKeys(false)) {
             JsonInstance yElement = elevators.getChild(rawY);
@@ -176,29 +248,29 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
             String name = getString(yObject, "name");
             String disguise = getString(yObject, "disguise");
             Boolean enabled = getBoolean(yObject, "enabled");
-            Boolean particles = getBoolean(yObject, "particles");
             Boolean visible = getBoolean(yObject, "visible");
             JsonArray viewers = getArray(yObject, "viewers");
 
             if (name == null || disguise == null || enabled == null ||
-                    particles == null || visible == null || viewers == null) continue;
+                    visible == null || viewers == null) continue;
 
             Set<UUID> viewersUUIDs = mapViewers(viewers);
             try {
                 int y = Integer.parseInt(rawY);
 
-                ClosedBlockSettings settings = new ClosedBlockSettings(name, disguise, enabled, particles, visible, viewersUUIDs);
-                ElevatorBlock block = new ElevatorBlock(owner, world, x, y, z, settings, this);
+                ClosedBlockSettings settings = new ClosedBlockSettings(name, disguise, enabled, visible, viewersUUIDs);
+                ElevatorBlock block = new ElevatorBlock(owner, world, x, y, z, floors, settings, this);
 
                 parsedElevators.add(block);
             } catch (NumberFormatException ignored) {}
         }
         parsedElevators.sort(Comparator.comparingInt(ElevatorBlock::getY));
 
+        floors.set(parsedElevators.size());
         ElevatorBlock previous = null;
         for (int i = 0; i < parsedElevators.size(); i++) {
             ElevatorBlock block = parsedElevators.get(i);
-            block.setLevel(i);
+            block.setFloor(i);
 
             if (previous != null)
                 previous.setNext(block);
@@ -258,6 +330,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
         return nat.getBoolean();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private JsonArray getArray(final JsonObject object, final String key) {
         if (!object.hasChild(key))
             return null;
