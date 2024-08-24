@@ -37,6 +37,14 @@ public interface BlockSettings {
     String getDisguise();
 
     /**
+     * Get the disguised block name
+     *
+     * @return the block name
+     */
+    @NotNull
+    String getDisguiseName();
+
+    /**
      * Update the block disguise
      *
      * @param disguise the new block disguise

@@ -1,24 +1,33 @@
 package com.github.karmadeb.closedblocks.plugin.command;
 
 import com.github.karmadeb.closedblocks.api.ClosedAPI;
+import com.github.karmadeb.closedblocks.api.block.BlockSettings;
+import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
+import com.github.karmadeb.closedblocks.plugin.util.inventory.ClosedBlockManager;
+import es.karmadev.api.functional.inventory.helper.PagedInventory;
+import es.karmadev.api.functional.inventory.helper.functional.Action;
+import es.karmadev.api.functional.inventory.helper.page.InventoryPaginated;
+import es.karmadev.api.functional.inventory.helper.page.type.PageAction;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -27,8 +36,8 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
     private static final String RELOAD_PERMISSION = "closedblocks.reload";
     private static final String GIVE_ELEVATOR_PERMISSION = "closedblocks.give.elevator";
 
-    private static final String[] ACTIONS = new String[]{"help", "give", "reload"};
-    private static final String[] HELP_TYPES = new String[]{"give", "reload"};
+    private static final String[] ACTIONS = new String[]{"help", "give", "reload", "manage"};
+    private static final String[] HELP_TYPES = new String[]{"give", "reload", "manage"};
     private static final String[] GIVE_TYPES = new String[]{"elevator"};
 
     private final ClosedBlocksPlugin plugin;
@@ -154,11 +163,133 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
         return Collections.emptyList();
     }
 
+    private void handleActionManageOnly(final @NotNull CommandSender sender, final String name) {
+        if (!(sender instanceof Player)) {
+            PluginMessages.PLAYER_REQUIRED.send(sender);
+            return;
+        }
+
+        Player player = (Player) sender;
+        List<ClosedBlock> playerOwnedBlocks = ClosedAPI.getInstance().getBlockStorage().getAllBlocks(player);
+        if (name != null)
+            playerOwnedBlocks = playerOwnedBlocks.stream()
+                    .filter((block) -> ChatColor.stripColor(color(block.getSettings().getName())).toLowerCase()
+                            .startsWith(ChatColor.stripColor(color(name)).toLowerCase())).collect(Collectors.toList());
+
+        InventoryPaginated paginated = new InventoryPaginated(plugin);
+        paginated.allowClose();
+
+        int pages = playerOwnedBlocks.size() / 45;
+        int extra = playerOwnedBlocks.size() % 45;
+        if (extra > 0)
+            pages += 1;
+
+        if (pages == 0)
+            pages = 1;
+
+        int vItem = 0;
+
+        ItemStack elevatorItem = this.plugin.getBukkitIntegration().createElevatorItem();
+        for (int i = 0; i < pages; i++) {
+            PagedInventory<InventoryPaginated> page = paginated.addPage();
+
+            for (int j = 0; j <= 45; j++) {
+                if (vItem >= playerOwnedBlocks.size())
+                    break;
+
+                ClosedBlock block = playerOwnedBlocks.get(vItem++);
+                if (block instanceof Elevator) {
+                    ItemStack item = elevatorItem.clone();
+                    mapBlockInfoToItem(block, item);
+
+                    page.setItem(j, item).onClick(createClickAction(player, page,
+                            block, j, item));
+                }
+            }
+        }
+
+        paginated.open(player);
+    }
+
+    private Action<PagedInventory<InventoryPaginated>> createClickAction(final Player player, final PagedInventory<InventoryPaginated> page,
+                                                                         final ClosedBlock block, final int itemSlot, final ItemStack item) {
+        return PageAction.create(plugin)
+                .runNow(() -> {
+                    ClosedBlockManager manager = new ClosedBlockManager(this.plugin, player, page,
+                            block, () -> {
+                        if (block.getSaveData().saveBlockData()) {
+                            mapBlockInfoToItem(block, item);
+                            page.setItem(itemSlot, item).onClick(
+                                    createClickAction(player, page, block, itemSlot, item)
+                            );
+                        }
+                    });
+                    manager.open(player);
+                });
+    }
+
+    private void mapBlockInfoToItem(final ClosedBlock block, final ItemStack item) {
+        BlockSettings settings = block.getSettings();
+
+        ItemMeta meta = item.getItemMeta();
+        assert meta != null;
+
+        String name = String.format("&7Block at&3 %d&7,&3 %d&7,&3 %d",
+                    block.getX(), block.getY(), block.getZ());
+
+        meta.setDisplayName(color(name));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(color("&0&m--------------"));
+        addIfNotEmpty(lore, PluginMessages.BLOCK_MANAGER_NAME.parse(
+                MessageParameter.name(settings.getName().isEmpty() ?
+                        name : settings.getName())
+        ));
+        addIfNotEmpty(lore, PluginMessages.BLOCK_MANAGER_TYPE.parse(
+                MessageParameter.type(block)
+        ));
+        addIfNotEmpty(lore, PluginMessages.BLOCK_MANAGER_WORLD.parse(
+                MessageParameter.world(block.getWorld())
+        ));
+        addIfNotEmpty(lore, PluginMessages.BLOCK_MANAGER_COORDS.parse(
+                MessageParameter.x(block.getX()),
+                MessageParameter.y(block.getY()),
+                MessageParameter.z(block.getZ())
+        ));
+        addIfNotEmpty(lore, PluginMessages.BLOCK_MANAGER_DISGUISE.parse(
+                MessageParameter.disguise(settings.getDisguiseName())
+        ));
+        if (settings.isEnabled()) {
+            addIfNotEmpty(lore, PluginMessages.BLOCK_MANAGER_ENABLED.parse());
+        } else {
+            addIfNotEmpty(lore, PluginMessages.BLOCK_MANAGER_DISABLED.parse());
+        }
+        lore.add(color("&0&m--------------"));
+        lore.add(PluginMessages.BLOCK_MANAGER_MANAGE.parse());
+        meta.setLore(lore);
+
+        meta.addItemFlags(ItemFlag.values());
+        item.setItemMeta(meta);
+    }
+
+    private String color(final String string) {
+        return ChatColor.translateAlternateColorCodes('&', string);
+    }
+
+    private void addIfNotEmpty(final List<String> list, final String content) {
+        if (content.trim().isEmpty())
+            return;
+
+        list.add(color(content));
+    }
+
     private void sendHelp(final CommandSender sender, final String label) {
         PluginMessages.HELP_TITLE.send(sender);
         PluginMessages.HELP_INLINE_GIVE.send(sender,
                 MessageParameter.label(label));
         PluginMessages.HELP_INLINE_RELOAD.send(sender,
+                MessageParameter.label(label));
+        PluginMessages.HELP_INLINE_MANAGE.send(sender,
                 MessageParameter.label(label));
     }
 
@@ -174,9 +305,18 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                     PluginMessages.HELP_TITLE.send(sender);
                     PluginMessages.HELP_RELOAD.send(sender);
                     break;
+                case "manage":
+                    PluginMessages.HELP_TITLE.send(sender);
+                    PluginMessages.HELP_MANAGE.send(sender);
+                    break;
                 default:
                     sendHelp(sender, label);
             }
+        } else if (action.equalsIgnoreCase("give")) {
+            PluginMessages.INCOMPLETE_ACTION.send(sender, MessageParameter.label(label),
+                    MessageParameter.action(action));
+        } else if (action.equalsIgnoreCase("manage")) {
+            handleActionManageOnly(sender, actionParam);
         }
     }
 
@@ -186,6 +326,9 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
             return;
         } else if (action.equalsIgnoreCase("reload")) {
             reloadPlugin(sender);
+            return;
+        } else if (action.equalsIgnoreCase("manage")) {
+            handleActionManageOnly(sender, null);
             return;
         }
 

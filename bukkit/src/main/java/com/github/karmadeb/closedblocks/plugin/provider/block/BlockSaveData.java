@@ -1,10 +1,13 @@
 package com.github.karmadeb.closedblocks.plugin.provider.block;
 
+import com.github.karmadeb.closedblocks.api.ClosedAPI;
 import com.github.karmadeb.closedblocks.api.block.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.SaveData;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
+import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
+import com.github.karmadeb.closedblocks.plugin.provider.storage.ClosedBlocksStorage;
 import es.karmadev.api.kson.JsonArray;
 import es.karmadev.api.kson.JsonInstance;
 import es.karmadev.api.kson.JsonObject;
@@ -95,15 +98,6 @@ public class BlockSaveData implements SaveData {
                 jWriter.export(writer);
             }
 
-            if (block instanceof ElevatorBlock) {
-                ElevatorBlock eb = (ElevatorBlock) block;
-                eb.getFloorAtomic().set(
-                        eb.getFloorAtomic().get() - 1
-                );
-
-                remapElevatorLevels();
-            }
-
             World world = block.getWorld();
             Block blockAt = world.getBlockAt(block.getX(), y, block.getZ());
             blockAt.removeMetadata("closed_type", plugin);
@@ -112,27 +106,6 @@ public class BlockSaveData implements SaveData {
         } catch (IOException ex) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save block data", ex);
             return false;
-        }
-    }
-
-    private void remapElevatorLevels() {
-        ElevatorBlock removedBlock = (ElevatorBlock) block;
-        ElevatorBlock nxt = (ElevatorBlock) removedBlock.getNext().orElse(null);
-        ElevatorBlock prv = (ElevatorBlock) removedBlock.getPrevious().orElse(null);
-
-        if (prv != null && nxt != null) {
-            prv.setNext(nxt);
-            nxt.setPrevious(prv);
-        } else if (prv != null) {
-            prv.setNext(null);
-        } else if (nxt != null) {
-            nxt.setPrevious(null);
-        }
-
-        ElevatorBlock curr = nxt;
-        while (curr != null) {
-            curr.setFloor(curr.getFloor() - 1);
-            curr = (ElevatorBlock) curr.getNext().orElse(null);
         }
     }
 

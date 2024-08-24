@@ -3,6 +3,7 @@ package com.github.karmadeb.closedblocks.plugin.provider.block;
 import com.github.karmadeb.closedblocks.api.block.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.SaveData;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
+import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -11,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SuppressWarnings("unused")
 public class ElevatorBlock implements Elevator {
 
     private final OfflinePlayer owner;
@@ -36,7 +36,7 @@ public class ElevatorBlock implements Elevator {
     public ElevatorBlock(final OfflinePlayer owner, final World world, final int x, final int y, final int z, final String disguise,
                          final AtomicInteger floors,
                          final ClosedBlocksPlugin plugin) {
-        this(owner, world, x, y, z, floors, new ClosedBlockSettings(disguise), plugin);
+        this(owner, world, x, y, z, floors, new ClosedBlockSettings(plugin, disguise), plugin);
     }
 
     public ElevatorBlock(final OfflinePlayer owner, final World world, final int x, final int y, final int z,
@@ -64,7 +64,18 @@ public class ElevatorBlock implements Elevator {
      */
     @Override
     public boolean hasPrevious() {
-        return this.previous != null;
+        if (this.previous == null)
+            return false;
+
+        if (!this.previous.getSettings().isEnabled()) {
+            Elevator previousElevator = this.previous.getPrevious().orElse(null);
+            if (previousElevator == null)
+                return false;
+
+            return isWithinDistance(previousElevator, this);
+        }
+
+        return isWithinDistance(this.previous, this);
     }
 
     /**
@@ -75,7 +86,21 @@ public class ElevatorBlock implements Elevator {
      */
     @Override
     public @NotNull Optional<Elevator> getPrevious() {
-        return Optional.ofNullable(this.previous);
+        if (this.previous == null)
+            return Optional.empty();
+
+        if (!this.previous.getSettings().isEnabled()) {
+            Elevator previousElevator = this.previous.getPrevious().orElse(null);
+            if (isWithinDistance(previousElevator, this))
+                return Optional.of(previousElevator);
+
+            return Optional.empty();
+        }
+
+        if (isWithinDistance(this.previous, this))
+            return Optional.of(this.previous);
+
+        return Optional.empty();
     }
 
     public void setPrevious(final ElevatorBlock previous) {
@@ -111,10 +136,6 @@ public class ElevatorBlock implements Elevator {
         return this.floors.get();
     }
 
-    public void setFloors(final int floors) {
-        this.floors.set(floors);
-    }
-
     /**
      * Get the next elevator
      * level
@@ -123,7 +144,21 @@ public class ElevatorBlock implements Elevator {
      */
     @Override
     public @NotNull Optional<Elevator> getNext() {
-        return Optional.ofNullable(this.next);
+        if (this.next == null)
+            return Optional.empty();
+
+        if (!this.next.getSettings().isEnabled()) {
+            Elevator nextElevator = this.next.getNext().orElse(null);
+            if (isWithinDistance(this, nextElevator))
+                return Optional.of(nextElevator);
+
+            return Optional.empty();
+        }
+
+        if (isWithinDistance(this, this.next))
+            return Optional.of(this.next);
+
+        return Optional.empty();
     }
 
     public void setNext(final ElevatorBlock next) {
@@ -138,7 +173,18 @@ public class ElevatorBlock implements Elevator {
      */
     @Override
     public boolean hasNext() {
-        return this.next != null;
+        if (this.next == null)
+            return false;
+
+        if (!this.next.getSettings().isEnabled()) {
+            Elevator nextElevator = this.next.getNext().orElse(null);
+            if (nextElevator == null)
+                return false;
+
+            return isWithinDistance(this, nextElevator);
+        }
+
+        return isWithinDistance(this, next);
     }
 
     /**
@@ -209,5 +255,13 @@ public class ElevatorBlock implements Elevator {
     @Override
     public SaveData getSaveData() {
         return this.saveData;
+    }
+
+    private static boolean isWithinDistance(final Elevator from, final Elevator to) {
+        if (to == null || from == null)
+            return false;
+
+        int distance = Math.abs(to.getY()) - Math.abs(from.getY());
+        return distance <= ElevatorConfig.MAX_DISTANCE.get();
     }
 }

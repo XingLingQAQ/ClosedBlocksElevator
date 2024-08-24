@@ -14,6 +14,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -53,6 +54,12 @@ public class PlayerMotionListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        Player player = e.getPlayer();
+        this.plugin.getChecker().noticePlayer(player);
+    }
+
+    @EventHandler
     public void onPlayerCrouch(PlayerToggleSneakEvent e) {
         Player player = e.getPlayer();
         Block block = player.getLocation().getBlock();
@@ -66,7 +73,7 @@ public class PlayerMotionListener implements Listener {
             return;
 
         Elevator cb = (Elevator) ClosedBlocksAPI.getInstance().getBlockStorage().getFromBlock(block).orElse(null);
-        if (cb == null)
+        if (cb == null || !cb.getSettings().isEnabled())
             return;
 
         if (cb.hasPrevious()) {
@@ -119,7 +126,7 @@ public class PlayerMotionListener implements Listener {
             return;
 
         Elevator cb = (Elevator) ClosedBlocksAPI.getInstance().getBlockStorage().getFromBlock(block).orElse(null);
-        if (cb == null)
+        if (cb == null || !cb.getSettings().isEnabled())
             return;
 
         if (cb.hasNext()) {

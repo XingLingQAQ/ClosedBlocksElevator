@@ -1,6 +1,7 @@
 package com.github.karmadeb.closedblocks.plugin.provider.block;
 
 import com.github.karmadeb.closedblocks.api.block.BlockSettings;
+import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -16,18 +17,22 @@ public class ClosedBlockSettings implements BlockSettings {
 
     private static final String EMPTY_STRING = "";
 
+    private final ClosedBlocksPlugin plugin;
     private String name = EMPTY_STRING;
     private String disguise;
     private boolean enabled = true;
     private boolean visible = false;
     private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
 
-    public ClosedBlockSettings(final String disguise) {
+    public ClosedBlockSettings(final @NotNull ClosedBlocksPlugin plugin, final String disguise) {
+        this.plugin = plugin;
         this.disguise = disguise;
     }
 
-    public ClosedBlockSettings(final @NotNull String name, final @NotNull String disguise, final boolean enabled, final boolean visible,
+    public ClosedBlockSettings(final @NotNull ClosedBlocksPlugin plugin,
+                               final @NotNull String name, final @NotNull String disguise, final boolean enabled, final boolean visible,
                                final @NotNull Collection<UUID> viewers) {
+        this.plugin = plugin;
         this.name = name;
         this.disguise = disguise;
         this.enabled = enabled;
@@ -65,6 +70,23 @@ public class ClosedBlockSettings implements BlockSettings {
     @Override
     public @NotNull String getDisguise() {
         return this.disguise;
+    }
+
+    /**
+     * Get the disguised block name
+     *
+     * @return the block name
+     */
+    @Override
+    public @NotNull String getDisguiseName() {
+        if (this.plugin.getItemsAdderIntegration().has(this.disguise)) {
+            dev.lone.itemsadder.api.CustomBlock customBlock = dev.lone.itemsadder.api.CustomBlock
+                    .getInstance(this.disguise);
+            return customBlock.getDisplayName().toLowerCase()
+                    .replace("_", " ");
+        }
+
+        return normalizeName(this.disguise);
     }
 
     /**
@@ -169,5 +191,9 @@ public class ClosedBlockSettings implements BlockSettings {
     @Override
     public void removeViewer(final @NotNull OfflinePlayer player) {
         this.viewers.remove(player.getUniqueId());
+    }
+
+    private static String normalizeName(final String material) {
+        return material.toLowerCase().replace("_", " ");
     }
 }

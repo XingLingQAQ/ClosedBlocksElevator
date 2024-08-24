@@ -7,8 +7,8 @@ import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -67,7 +67,7 @@ public abstract class BlockStorage {
      * @return the blocks
      */
     @NotNull
-    public abstract Collection<ClosedBlock> getAllBlocks();
+    public abstract List<ClosedBlock> getAllBlocks();
 
     /**
      * Get all the closed blocks matching the
@@ -77,7 +77,7 @@ public abstract class BlockStorage {
      * @return the matching blocks
      */
     @NotNull
-    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull Class<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type))
@@ -93,7 +93,7 @@ public abstract class BlockStorage {
      * @return the player blocks
      */
     @NotNull
-    public Collection<ClosedBlock> getAllBlocks(final @NotNull OfflinePlayer owner) {
+    public List<ClosedBlock> getAllBlocks(final @NotNull OfflinePlayer owner) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byOwner(owner))
@@ -107,7 +107,7 @@ public abstract class BlockStorage {
      * @param world world the blocks world
      * @return the world blocks
      */
-    public Collection<ClosedBlock> getAllBlocks(final @NotNull World world) {
+    public List<ClosedBlock> getAllBlocks(final @NotNull World world) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byWorld(world))
@@ -125,7 +125,7 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @NotNull OfflinePlayer owner, final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull OfflinePlayer owner, final @NotNull Class<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type)
@@ -145,7 +145,7 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @NotNull World world, final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull World world, final @NotNull Class<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type)
@@ -165,7 +165,7 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public Collection<ClosedBlock> getAllBlocks(final @NotNull World world, final @NotNull OfflinePlayer owner) {
+    public List<ClosedBlock> getAllBlocks(final @NotNull World world, final @NotNull OfflinePlayer owner) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byOwner(owner)
@@ -186,7 +186,7 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public <T extends ClosedBlock> Collection<T> getAllBlocks(final @Nullable World world, final @Nullable OfflinePlayer owner, final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @Nullable World world, final @Nullable OfflinePlayer owner, final @NotNull Class<T> type) {
         return this.getAllBlocks().stream()
                 .filter(byType(type)
                         .and(byOwner(owner))
@@ -221,7 +221,7 @@ public abstract class BlockStorage {
         return (block ->  block.getWorld().equals(world));
     }
 
-    private static <T> Collection<T> unmodifiable(final Collection<T> collection) {
-        return Collections.unmodifiableCollection(collection);
+    private static <T> List<T> unmodifiable(final List<T> collection) {
+        return Collections.unmodifiableList(collection);
     }
 }

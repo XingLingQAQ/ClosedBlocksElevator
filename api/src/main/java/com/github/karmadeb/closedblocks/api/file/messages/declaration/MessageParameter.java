@@ -1,7 +1,9 @@
 package com.github.karmadeb.closedblocks.api.file.messages.declaration;
 
+import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.NotNull;
 
@@ -221,8 +223,99 @@ public final class MessageParameter {
      * @param type the placeholder value
      * @return the message parameter
      */
+    public static MessageParameter type(final ClosedBlock type) {
+        if (type instanceof Elevator)
+            return create("type", "elevator");
+
+        return create("type", type.getClass().getSimpleName().toLowerCase());
+    }
+
+    /**
+     * Create a message parameter for {type}
+     * placeholder
+     *
+     * @param type the placeholder value
+     * @return the message parameter
+     */
     public static MessageParameter type(final String type) {
         return create("type", type);
+    }
+
+    /**
+     * Create a message parameter for {name}
+     * placeholder
+     *
+     * @param name the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter name(final String name) {
+        return create("name", name);
+    }
+
+    /**
+     * Create a message parameter for {world}
+     * placeholder
+     *
+     * @param world the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter world(final World world) {
+        return create("world", world.getName());
+    }
+
+    /**
+     * Create a message parameter for {world}
+     * placeholder
+     *
+     * @param world the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter world(final String world) {
+        return create("world", world);
+    }
+
+    /**
+     * Create a message parameter for {x}
+     * placeholder
+     *
+     * @param x the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter x(final int x) {
+        return create("x", x);
+    }
+
+    /**
+     * Create a message parameter for {y}
+     * placeholder
+     *
+     * @param y the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter y(final int y) {
+        return create("y", y);
+    }
+
+    /**
+     * Create a message parameter for {z}
+     * placeholder
+     *
+     * @param z the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter z(final int z) {
+        return create("z", z);
+    }
+
+    /**
+     * Create a message parameter for {disguise}
+     * placeholder
+     *
+     * @param disguise the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter disguise(final String disguise) {
+        return create("disguise", disguise);
     }
 
     /**

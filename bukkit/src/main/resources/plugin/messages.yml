@@ -5,12 +5,14 @@
 ##############################################
 
 Permission: "&dYou don't have the permission &7{permission}"
+PlayerRequired: "&dThis command is not intended for CONSOLE usage"
 InvalidAction: "&dInvalid action. Valid actions are&7: {actions}"
 IncompleteAction: "&dInvalid or incomplete action. Run &8\"&7{label} help {action}&8\"&d for help"
 
 HelpTitle: "&8&m------&3 ClosedBlocks &8&m------"
 HelpInlineGive: "&8/&7{label} give &8- &fGives a closed block to a player"
 HelpInlineReload: "&8/&7{label} reload &8- &fReloads the plugin files and recipes"
+HelpInlineManage: "&8/&7{label} manage &8- &fManages all the owned closed blocks"
 
 HelpGive:
   - "&7Gives the&d [player]&7 a closed block"
@@ -25,6 +27,13 @@ HelpReload:
   - "&7Reloads the plugin files and recipes"
   - "&dPermissions:"
   - "  &8- &7closedblocks.reload"
+HelpManage:
+  - "&7Opens a menu to manage all the placed closed blocks"
+  - "&dParameters:"
+  - "  &8-&7 [&3name&7] &8- &fThe closed block name"
+
+RenameTypeInChat: "&3Type in chat the new block name, or type&d .cancel&3 to cancel"
+BlockManageRemoved: "&dThe block you were managing has been removed"
 
 ReloadSuccess: "&3Successfully reloaded ClosedBlocks files and recipes"
 ReloadFailed: "&dFailed to reload ClosedBlocks files and recipes"
@@ -35,3 +44,18 @@ GiveInvalidAmount: "&dFailed to give closed block to&7 {player}&d. Specified amo
 GiveInventoryFull: "&dFailed to give closed block to&7 {player}&d. Target inventory only has &7{slots}&d available slots"
 GiveSuccess: "&3Successfully give&7 {amount}&3 blocks of &7{type}&3 to&7 {player}"
 GiveReceived: "&3You've received &7{amount}&3 blocks of &7{type}&3 from&7 {player}"
+
+BlockManagerNext: "&7Next"
+BlockManagerPrevious: "&7Previous"
+BlockManagerCancel: "&cCancel"
+BlockManagerName: "&7Name: &3{name}"
+BlockManagerType: "&7Type: &3{type}"
+BlockManagerWorld: "&7World: &3{world}"
+BlockManagerCoords: "&7Coords: &8X&7: &3{x} &8Y&7: &3{x} &8Z&7: &3{x}"
+BlockManagerDisguise: "&7Disguise: &3{disguise}"
+BlockManagerEnabled: "&7Status: &3Enabled"
+BlockManagerDisabled: "&7Status: &3Disabled"
+BlockManagerManage: "&bClick to manage this block"
+BlockManagerEnable: "&bClick to enable this block"
+BlockManagerDisable: "&bClick to disable this block"
+BlockManagerRename: "&bClick to rename this block"

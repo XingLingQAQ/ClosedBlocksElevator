@@ -220,12 +220,9 @@ public class PlaceRemoveListener {
         ElevatorBlock previous = null;
         ElevatorBlock next = null;
 
-        int level = 0;
         for (ElevatorBlock eb : elevatorsInLine) {
-            if (eb.getY() < y) {
+            if (eb.getY() < y)
                 previous = eb;
-                level++;
-            }
 
             if (eb.getY() > y) {
                 next = eb;
@@ -236,7 +233,9 @@ public class PlaceRemoveListener {
         boolean isClose = checkIfIsTooClose(previous, next, y);
         boolean isFar = checkIfIsTooFar(previous, next, y);
 
-        AtomicInteger floorsInstance = getFloorInstance(previous, next);
+        AtomicInteger floorsInstance = (next != null ? next.getFloorAtomic() :
+                previous != null ? previous.getFloorAtomic() : new AtomicInteger(1));
+
         if (isClose) {
             ElevatorMessage.PLACEMENT_TOO_CLOSE.send(player, MessageParameter.blocks(2));
             return;
@@ -250,25 +249,6 @@ public class PlaceRemoveListener {
         ElevatorBlock eb = new ElevatorBlock(player, world, x, y, z, ElevatorConfig.DISGUISE.get(), floorsInstance, event.getPlugin());
         if (ClosedBlocksAPI.getInstance().getBlockStorage().placeBlock(eb)) {
             removeItemFromInventory(slot, item, player);
-
-            floorsInstance.set(floorsInstance.get() + 1);
-            eb.setFloor(level);
-            eb.setPrevious(previous);
-            eb.setNext(next);
-
-            if (previous != null)
-                previous.setNext(eb);
-
-            ElevatorBlock prv = eb;
-            ElevatorBlock nxt = next;
-            while (nxt != null) {
-                nxt.setFloor(nxt.getFloor() + 1);
-                nxt.setPrevious(prv);
-
-                prv = nxt;
-                nxt = (ElevatorBlock) nxt.getNext().orElse(null);
-            }
-
             block.setMetadata("closed_type", new FixedMetadataValue(event.getPlugin(), "elevator"));
 
             ClosedBlockPlacedEvent placedEvent = new ClosedBlockPlacedEvent(player, block, eb);
@@ -280,11 +260,6 @@ public class PlaceRemoveListener {
             ElevatorMessage.PLACEMENT_FAILED.send(player);
             event.setCancelled(true);
         }
-    }
-
-    private static AtomicInteger getFloorInstance(ElevatorBlock previous, ElevatorBlock next) {
-        return previous != null ? previous.getFloorAtomic() :
-                next != null ? next.getFloorAtomic() : new AtomicInteger(0);
     }
 
     private static void removeItemFromInventory(int slot, ItemStack item, Player player) {

@@ -13,6 +13,7 @@ import com.github.karmadeb.closedblocks.plugin.provider.block.ClosedBlockSetting
 import com.github.karmadeb.closedblocks.plugin.provider.block.ElevatorBlock;
 import com.github.karmadeb.closedblocks.plugin.util.ElevatorVisualizer;
 import com.github.karmadeb.closedblocks.plugin.util.ParticleUtils;
+import com.github.karmadeb.closedblocks.plugin.util.version.VersionChecker;
 import de.tr7zw.changeme.nbtapi.NBT;
 import es.karmadev.api.kson.JsonArray;
 import es.karmadev.api.kson.JsonInstance;
@@ -20,6 +21,7 @@ import es.karmadev.api.kson.JsonNative;
 import es.karmadev.api.kson.JsonObject;
 import es.karmadev.api.kson.io.JsonReader;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -28,10 +30,13 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.event.HandlerList;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -42,7 +47,11 @@ import java.util.stream.Stream;
 
 public final class ClosedBlocksPlugin extends JavaPlugin {
 
+    private static final String LICENSED_TO_USER_ID = "%%__USER__%%";
+    private static final String LICENSED_TO_USERNAME = "%%__USERNAME__%%";
+
     private final ClosedBlocksAPI api = new ClosedBlocksAPI(this);
+    private final VersionChecker checker = new VersionChecker(this);
 
     private BukkitIntegration bukkitIntegration;
     private ItemsAdderIntegration itemsAdderIntegration;
@@ -89,6 +98,9 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
             this.particleAPI = new ParticleUtils(this, pna);
             this.visualizer = new ElevatorVisualizer(this);
             this.visualizer.start();
+
+            checker.start();
+            sendThanksMessage();
         };
         itemsAdderIntegration = new ItemsAdderIntegration(this, task);
         api.addIntegration(itemsAdderIntegration);
@@ -109,8 +121,40 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
         closedBlockCommand.setTabCompleter(executor);
     }
 
+    @SuppressWarnings("ConstantValue")
+    private void sendThanksMessage() {
+        if ("%%__USER__%%".equalsIgnoreCase(LICENSED_TO_USER_ID) && "%%__USERNAME__%%".equalsIgnoreCase(LICENSED_TO_USERNAME)) {
+            getLogger().warning("Self compiled version of ClosedBlocks detected. You won't receive official plugin updates!");
+        } else {
+            String username = LICENSED_TO_USERNAME;
+            if ("%%__USERNAME__%%".equalsIgnoreCase(LICENSED_TO_USERNAME)) {
+                username = getSpigotUsername();
+                if (username == null) {
+                    getLogger().warning("Self compiled version of ClosedBlocks detected. You won't receive official plugin updates!");
+                    return;
+                }
+            }
+
+            String profileURL = "";
+            if (this.checker.isPolymartAgent()) {
+                profileURL = "https://polymart.org/user/" + LICENSED_TO_USER_ID;
+            } else if (this.checker.isBuiltByBitAgent()) {
+                profileURL = "https://builtbybit.com/members/" + LICENSED_TO_USER_ID;
+            } else {
+                profileURL = "https://www.spigotmc.org/members/" + LICENSED_TO_USER_ID;
+            }
+
+            Bukkit.getConsoleSender().sendMessage(
+                    ChatColor.translateAlternateColorCodes('&',
+                            "&6This ClosedBlocks instance is licensed to&7 " + username + "&8 (&7" + profileURL + "&8)")
+            );
+        }
+    }
+
     @Override
     public void onDisable() {
+        checker.stop();
+
         if (this.visualizer != null)
             this.visualizer.kill();
 
@@ -128,6 +172,10 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
     public Path getDataPath() {
         return this.getDataFolder().toPath();
+    }
+
+    public VersionChecker getChecker() {
+        return this.checker;
     }
 
     public BukkitIntegration getBukkitIntegration() {
@@ -239,6 +287,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
         List<ElevatorBlock> parsedElevators = new ArrayList<>();
         AtomicInteger floors = new AtomicInteger();
 
+        int enabledLevels = 0;
         for (String rawY : elevators.getKeys(false)) {
             JsonInstance yElement = elevators.getChild(rawY);
             if (!yElement.isObjectType())
@@ -258,31 +307,43 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
             try {
                 int y = Integer.parseInt(rawY);
 
-                ClosedBlockSettings settings = new ClosedBlockSettings(name, disguise, enabled, visible, viewersUUIDs);
+                ClosedBlockSettings settings = new ClosedBlockSettings(this, name, disguise, enabled, visible, viewersUUIDs);
                 ElevatorBlock block = new ElevatorBlock(owner, world, x, y, z, floors, settings, this);
+
+                if (enabled)
+                    enabledLevels++;
 
                 parsedElevators.add(block);
             } catch (NumberFormatException ignored) {}
         }
         parsedElevators.sort(Comparator.comparingInt(ElevatorBlock::getY));
 
-        floors.set(parsedElevators.size());
+        floors.set(enabledLevels);
         ElevatorBlock previous = null;
+        AtomicInteger vLevel = new AtomicInteger();
         for (int i = 0; i < parsedElevators.size(); i++) {
-            ElevatorBlock block = parsedElevators.get(i);
-            block.setFloor(i);
-
-            if (previous != null)
-                previous.setNext(block);
-
-            block.setPrevious(previous);
-            previous = block;
-
-            Block blockAt = world.getBlockAt(block.getX(), block.getY(), block.getZ());
-            blockAt.setMetadata("closed_type", new FixedMetadataValue(this, "elevator"));
+            previous = mapElevatorBlocks(world, parsedElevators, i, vLevel, previous);
         }
 
         api.getBlockStorage().addAll(parsedElevators);
+    }
+
+    private @NotNull ElevatorBlock mapElevatorBlocks(World world, List<ElevatorBlock> parsedElevators, int i, AtomicInteger vLevel, ElevatorBlock previous) {
+        ElevatorBlock block = parsedElevators.get(i);
+        block.setFloor(vLevel.getAndIncrement());
+
+        if (!block.getSettings().isEnabled())
+            vLevel.set(vLevel.get() - 1);
+
+        if (previous != null)
+            previous.setNext(block);
+
+        block.setPrevious(previous);
+        previous = block;
+
+        Block blockAt = world.getBlockAt(block.getX(), block.getY(), block.getZ());
+        blockAt.setMetadata("closed_type", new FixedMetadataValue(this, "elevator"));
+        return previous;
     }
 
     private Set<UUID> mapViewers(final JsonArray array) {
@@ -358,6 +419,27 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
             );
             return UUID.fromString(formattedUUID);
         } catch (Throwable ex) {
+            return null;
+        }
+    }
+
+    private String getSpigotUsername() {
+        try {
+            URL url = new URL("https://api.spigotmc.org/simple/0.2/index.php?action=getAuthor&id=" + LICENSED_TO_USER_ID);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            try (InputStream response = connection.getInputStream()) {
+                JsonInstance instance = JsonReader.read(response);
+                if (instance == null) {
+                    getLogger().severe("Failed to validate plugin license");
+                    return null;
+                }
+
+                JsonObject object = instance.asObject();
+                return object.asString("username");
+            }
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, "Failed to validate plugin license", ex);
             return null;
         }
     }

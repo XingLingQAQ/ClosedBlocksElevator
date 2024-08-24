@@ -19,6 +19,10 @@ DestroyFailed: "&dFailed to remove elevator"
 DestroyInventoryFull: "&dFailed to remove elevator. Your inventory is full"
 DestroyNotAllowed: "&dYou are not allowed to destroy that elevator"
 
+RenameFailed: "&dFailed to rename elevator to&7 {name}"
+RenameExisting: "&dFailed to rename elevator to&7 {name}&d. There's another elevator with that name"
+RenameSuccess: "&3Successfully renamed elevator to&7 {name}"
+
 FloorUpTitle: "&3↟ &3Floor&3 ↟"
 FloorUpSubtitle: "&7{floor} &8&l| &7{floors}&3"
 

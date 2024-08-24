@@ -14,15 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClosedBlocksAPI extends ClosedAPI {
 
-    private final ClosedBlocksStorage storage = new ClosedBlocksStorage();
     private final Set<Integration> integrations = ConcurrentHashMap.newKeySet();
 
     private final ClosedBlocksPlugin plugin;
+    private final ClosedBlocksStorage storage;
     private final Messages messages;
     private final Configuration configuration;
 
     public ClosedBlocksAPI(final ClosedBlocksPlugin plugin) {
         this.plugin = plugin;
+        this.storage = new ClosedBlocksStorage(plugin);
         this.messages = new MessagesFile(plugin);
         this.configuration = new ConfigurationFile(plugin);
     }

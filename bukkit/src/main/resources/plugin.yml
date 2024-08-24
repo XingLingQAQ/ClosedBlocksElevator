@@ -10,6 +10,9 @@ load: 'POSTWORLD'
 softdepend: [ 'ItemsAdder' ]
 
 permissions:
+  closedblocks.update:
+    description: 'Permission to receive a message when the plugin has a new update'
+    default: op
   closedblocks.view.all:
     description: 'Permission to view all the blocks, regardless of their viewer configuration'
     default: 'op'
