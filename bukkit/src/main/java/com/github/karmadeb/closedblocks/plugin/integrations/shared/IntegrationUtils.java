@@ -1,10 +1,12 @@
 package com.github.karmadeb.closedblocks.plugin.integrations.shared;
 
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessage;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -38,5 +40,23 @@ public class IntegrationUtils {
         }
 
         ElevatorMessage.DESTROY_SUCCESS.send(player);
+    }
+
+    public static boolean isIllegalType(final Material material) {
+        if (validateMaterialItself(material)) return true;
+        String name = material.name();
+
+        return name.endsWith("_DOOR") || name.endsWith("_TRAPDOOR") || name.endsWith("_BUTTON") ||
+                name.endsWith("_SHULKER_BOX") || name.endsWith("_BANNER") || name.endsWith("_WALL_HANGING_SIGN") ||
+                name.endsWith("HANGING_SIGN") || name.endsWith("_SIGN");
+    }
+
+    private static boolean validateMaterialItself(Material material) {
+        if (material == null)
+            return true;
+
+        return !material.isBlock() || !material.isSolid() || ElevatorConfig.DISGUISE_BLACKLIST.get().contains(material.name()) ||
+                material.isInteractable() || material.equals(Material.TNT) ||
+                material.equals(Material.LEVER) || material.equals(Material.SHULKER_BOX);
     }
 }

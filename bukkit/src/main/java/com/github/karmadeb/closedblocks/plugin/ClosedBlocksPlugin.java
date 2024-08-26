@@ -45,10 +45,11 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
+@SuppressWarnings("FieldCanBeLocal")
 public final class ClosedBlocksPlugin extends JavaPlugin {
 
-    private static final String LICENSED_TO_USER_ID = "%%__USER__%%";
-    private static final String LICENSED_TO_USERNAME = "%%__USERNAME__%%";
+    private final String LICENSED_TO_USER_ID = "%%__USER__%%";
+    private final String LICENSED_TO_USERNAME = "%%__USERNAME__%%";
 
     private final ClosedBlocksAPI api = new ClosedBlocksAPI(this);
     private final VersionChecker checker = new VersionChecker(this);
@@ -123,7 +124,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
     @SuppressWarnings("ConstantValue")
     private void sendThanksMessage() {
-        if ("%%__USER__%%".equalsIgnoreCase(LICENSED_TO_USER_ID) && "%%__USERNAME__%%".equalsIgnoreCase(LICENSED_TO_USERNAME)) {
+        if (LICENSED_TO_USER_ID.contains("__USER__") && LICENSED_TO_USERNAME.contains("__USERNAME__")) {
             getLogger().warning("Self compiled version of ClosedBlocks detected. You won't receive official plugin updates!");
         } else {
             String username = LICENSED_TO_USERNAME;
@@ -135,7 +136,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
                 }
             }
 
-            String profileURL = "";
+            String profileURL;
             if (this.checker.isPolymartAgent()) {
                 profileURL = "https://polymart.org/user/" + LICENSED_TO_USER_ID;
             } else if (this.checker.isBuiltByBitAgent()) {

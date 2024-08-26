@@ -18,14 +18,15 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 
+@SuppressWarnings("FieldCanBeLocal")
 public final class VersionChecker {
-
-    private static final String DOWNLOAD_AGENT_SPIGOTMC = "%%__RESOURCE__%%";
-    private static final String DOWNLOAD_AGENT_BUILTBYBIT = "%%__VERSION__%%";
-    private static final String DOWNLOAD_AGENT_POLYMART = "%%__POLYMART__%%";
 
     private static final String CHECK_URL = "https://api.spigotmc.org/simple/0.2/index.php?action=getResource&id=105696";
     private static final String CHANGELOG_URL = "https://api.spigotmc.org/simple/0.2/index.php?action=getResourceUpdates&id=105696&page=%d";
+
+    private final String DOWNLOAD_AGENT_SPIGOTMC = "%%__RESOURCE__%%";
+    private final String DOWNLOAD_AGENT_BUILTBYBIT = "%%__VERSION__%%";
+    private final String DOWNLOAD_AGENT_POLYMART = "%%__POLYMART__%%";
 
     private final ClosedBlocksPlugin plugin;
 
@@ -127,17 +128,17 @@ public final class VersionChecker {
 
     @SuppressWarnings("ConstantValue")
     public boolean isPolymartAgent() {
-        return !"%%__POLYMART__%%".equalsIgnoreCase(DOWNLOAD_AGENT_POLYMART);
+        return !DOWNLOAD_AGENT_POLYMART.contains("__POLYMART__");
     }
 
     @SuppressWarnings("ConstantValue")
     public boolean isBuiltByBitAgent() {
-        return !"%%__VERSION__%%".equalsIgnoreCase(DOWNLOAD_AGENT_BUILTBYBIT);
+        return !DOWNLOAD_AGENT_BUILTBYBIT.contains("__VERSION__");
     }
 
     @SuppressWarnings("ConstantValue")
     public boolean isSpigotMCAgent() {
-        return !"%%__RESOURCE__%%".equalsIgnoreCase(DOWNLOAD_AGENT_SPIGOTMC);
+        return !DOWNLOAD_AGENT_SPIGOTMC.contains("__RESOURCE__");
     }
 
     private String color(final String str) {

@@ -7,6 +7,7 @@ import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BBlock
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BBlockPlaceRemoveListener;
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BClosedBlockPlacedListener;
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.events.BClosedPluginListener;
+import com.github.karmadeb.closedblocks.plugin.integrations.shared.IntegrationUtils;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableItemNBT;
 import dev.lone.itemsadder.api.CustomBlock;
@@ -135,7 +136,7 @@ public class BukkitIntegration implements Integration {
     }
 
     public boolean isValidMaterial(final Material material) {
-        return material != null && material.isBlock();
+        return !IntegrationUtils.isIllegalType(material);
     }
 
     public ItemStack createElevatorItem() {
