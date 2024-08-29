@@ -7,7 +7,8 @@ package com.github.karmadeb.closedblocks.api.file;
  */
 public enum FileComponent {
     PLUGIN("plugin", "", false, true),
-    ELEVATOR("elevator", true, true);
+    ELEVATOR("elevator", true, true),
+    MINE("mine", true, true);
 
     private final String resourcePath;
     private final String targetPath;

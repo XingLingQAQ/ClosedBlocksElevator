@@ -1,5 +1,6 @@
 package com.github.karmadeb.closedblocks.api.storage;
 
+import com.github.karmadeb.closedblocks.api.block.BlockType;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -51,6 +52,7 @@ public abstract class BlockStorage {
      * @param block the block to remove
      * @return if the block is removed
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public abstract boolean destroyBlock(final ClosedBlock block);
 
     /**
@@ -77,11 +79,11 @@ public abstract class BlockStorage {
      * @return the matching blocks
      */
     @NotNull
-    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull BlockType<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type))
-                .map(type::cast)
+                .map(type::casted)
                 .collect(Collectors.toList()));
     }
 
@@ -125,12 +127,12 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull OfflinePlayer owner, final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull OfflinePlayer owner, final @NotNull BlockType<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type)
                         .and(byOwner(owner)))
-                .map(type::cast)
+                .map(type::casted)
                 .collect(Collectors.toList()));
     }
 
@@ -145,12 +147,12 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull World world, final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @NotNull World world, final @NotNull BlockType<T> type) {
         return unmodifiable(this.getAllBlocks()
                 .stream()
                 .filter(byType(type)
                         .and(byWorld(world)))
-                .map(type::cast)
+                .map(type::casted)
                 .collect(Collectors.toList()));
     }
 
@@ -186,31 +188,17 @@ public abstract class BlockStorage {
      * specified type
      */
     @NotNull
-    public <T extends ClosedBlock> List<T> getAllBlocks(final @Nullable World world, final @Nullable OfflinePlayer owner, final @NotNull Class<T> type) {
+    public <T extends ClosedBlock> List<T> getAllBlocks(final @Nullable World world, final @Nullable OfflinePlayer owner, final @NotNull BlockType<T> type) {
         return this.getAllBlocks().stream()
                 .filter(byType(type)
                         .and(byOwner(owner))
                         .and(byWorld(world)))
-                .map(type::cast)
+                .map(type::casted)
                 .collect(Collectors.toList());
     }
 
-    private static Class<? extends ClosedBlock> getClosestType(final Class<? extends ClosedBlock> type) {
-        Class<?>[] interfaces = type.getInterfaces();
-        for (Class<?> clazz : interfaces) {
-            if (ClosedBlock.class.equals(clazz)) {
-                return type;
-            } else if (ClosedBlock.class.isAssignableFrom(clazz)) {
-                return getClosestType(clazz.asSubclass(ClosedBlock.class));
-            }
-        }
-
-        return type;
-    }
-
-    private static Predicate<ClosedBlock> byType(final Class<? extends ClosedBlock> type) {
-        Class<? extends ClosedBlock> blockType = getClosestType(type);
-        return (block -> blockType.isAssignableFrom(block.getClass()));
+    private static Predicate<ClosedBlock> byType(final BlockType<? extends ClosedBlock> type) {
+        return (type::isType);
     }
 
     private static Predicate<ClosedBlock> byOwner(final OfflinePlayer player) {

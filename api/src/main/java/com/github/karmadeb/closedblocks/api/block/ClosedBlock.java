@@ -1,5 +1,7 @@
 package com.github.karmadeb.closedblocks.api.block;
 
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
+import com.github.karmadeb.closedblocks.api.block.data.SaveData;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +10,13 @@ import org.jetbrains.annotations.NotNull;
  * Represents a closed block
  */
 public interface ClosedBlock {
+
+    /**
+     * Get the closed block type
+     *
+     * @return the block type
+     */
+    BlockType<? extends ClosedBlock> getType();
 
     /**
      * Get the closed block owner

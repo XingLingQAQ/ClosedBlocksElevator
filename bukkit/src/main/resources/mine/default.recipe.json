@@ -1,0 +1,33 @@
+{
+	"pattern": [
+		"---",
+		"ABA",
+		"---"
+	],
+	"keys": {
+		"-": [
+			"POWDER"
+		],
+		"A": [
+			"TNT"
+		],
+		"B": [
+			"LEVER"
+		]
+	},
+	"resolves": {
+		"name": "&3Mine",
+		"type": "TNT",
+		"description": [
+			"&0&m----------------",
+			"",
+			"&7The mine causes an explosion",
+			"&7when a player steps on it.",
+			"",
+			"&e&l· &3While sneaking, right click a placed",
+			"&3mine with another mine to increase its power",
+			"&3or to refuse it if defused, or right click",
+			"&3with a flint and steel to make it incendiary."
+		]
+	}
+}

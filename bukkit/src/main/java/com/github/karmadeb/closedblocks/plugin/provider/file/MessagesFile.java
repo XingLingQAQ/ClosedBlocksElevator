@@ -5,8 +5,8 @@ import com.github.karmadeb.closedblocks.api.file.messages.Messages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageDeclaration;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import es.karmadev.api.kyle.yaml.YamlContent;
-import org.bukkit.ChatColor;
+import com.github.karmadeb.functional.helper.Colorize;
+import com.github.karmadeb.kyle.YamlContent;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,7 +66,6 @@ public class MessagesFile extends PluginFile implements Messages {
             for (MessageParameter parameter : parameters)
                 parameter.mapTo(messageBuilder);
 
-        return ChatColor.translateAlternateColorCodes('&',
-                messageBuilder.toString());
+        return Colorize.colorize(messageBuilder.toString());
     }
 }

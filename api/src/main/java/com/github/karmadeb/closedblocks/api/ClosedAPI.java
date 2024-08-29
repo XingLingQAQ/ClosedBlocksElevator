@@ -1,14 +1,21 @@
 package com.github.karmadeb.closedblocks.api;
 
+import com.github.karmadeb.closedblocks.api.block.BlockType;
+import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.file.configuration.Configuration;
 import com.github.karmadeb.closedblocks.api.file.configuration.declaration.FileDeclaration;
 import com.github.karmadeb.closedblocks.api.file.messages.Messages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageDeclaration;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.api.integration.Integration;
+import com.github.karmadeb.closedblocks.api.item.RecipeManager;
 import com.github.karmadeb.closedblocks.api.storage.BlockStorage;
 import org.bukkit.ChatColor;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * Represents the ClosedBlocks API
@@ -49,6 +56,13 @@ public abstract class ClosedAPI {
      * @param integration the integration to remove
      */
     public abstract void removeIntegration(final @NotNull Integration integration);
+
+    /**
+     * Get the recipe manager
+     *
+     * @return the recipe manager
+     */
+    public abstract RecipeManager getRecipeManager();
 
     /**
      * Get the plugin messages
@@ -105,5 +119,27 @@ public abstract class ClosedAPI {
             return declaration.getDefault();
 
         return instance.getConfig().getValue(declaration);
+    }
+
+    /**
+     * Create an item of the specified
+     * block type
+     *
+     * @param type the block type
+     * @return the block type item
+     * @param <T> the block type
+     */
+    public static <T extends ClosedBlock> ItemStack createItem(final BlockType<T> type) {
+        if (instance != null) {
+            RecipeManager manager = instance.getRecipeManager();
+            Collection<? extends Recipe> recipe = manager.getRecipes(type);
+            if (recipe.isEmpty())
+                return null;
+
+            Recipe any = recipe.stream().findAny().orElse(null);
+            return any.getResult();
+        }
+
+        throw new IllegalStateException("ClosedAPI has not been yet initialized!");
     }
 }

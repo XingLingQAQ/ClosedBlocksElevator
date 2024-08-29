@@ -4,7 +4,7 @@ import com.github.karmadeb.closedblocks.api.file.FileComponent;
 import com.github.karmadeb.closedblocks.api.file.configuration.Configuration;
 import com.github.karmadeb.closedblocks.api.file.configuration.declaration.FileDeclaration;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import es.karmadev.api.kyle.yaml.YamlContent;
+import com.github.karmadeb.kyle.YamlContent;
 
 public class ConfigurationFile extends PluginFile implements Configuration {
 

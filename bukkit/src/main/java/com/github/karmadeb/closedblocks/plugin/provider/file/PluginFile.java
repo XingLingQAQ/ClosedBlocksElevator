@@ -2,7 +2,7 @@ package com.github.karmadeb.closedblocks.plugin.provider.file;
 
 import com.github.karmadeb.closedblocks.api.file.FileComponent;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import es.karmadev.api.kyle.yaml.YamlContent;
+import com.github.karmadeb.kyle.YamlContent;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

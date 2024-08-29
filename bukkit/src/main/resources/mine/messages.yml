@@ -1,0 +1,11 @@
+##############################################
+#        ClosedBlocks configuration          #
+#                                            #
+# https://www.spigotmc.org/resources/105696/ #
+##############################################
+
+PowerIncreased: "&3Mine power increased"
+PowerCannotIncrease: "&dMine power cannot increase any more!"
+MineIncendiary: "&3Mine will now cause fire"
+MineAlreadyIncendiary: "&dMine is already incendiary"
+MineFused: "&3Mine is now active again"

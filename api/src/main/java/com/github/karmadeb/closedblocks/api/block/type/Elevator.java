@@ -1,5 +1,6 @@
 package com.github.karmadeb.closedblocks.api.block.type;
 
+import com.github.karmadeb.closedblocks.api.block.BlockType;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,7 +9,17 @@ import java.util.Optional;
 /**
  * Represents an elevator.
  */
-public interface Elevator extends ClosedBlock {
+public abstract class Elevator implements ClosedBlock {
+
+    /**
+     * Get the closed block type
+     *
+     * @return the block type
+     */
+    @Override
+    public final BlockType<Elevator> getType() {
+        return BlockType.ELEVATOR;
+    }
 
     /**
      * Get if the elevator has a
@@ -17,7 +28,7 @@ public interface Elevator extends ClosedBlock {
      * @return if the elevator has previous
      * floor
      */
-    boolean hasPrevious();
+    public abstract boolean hasPrevious();
 
     /**
      * Get the previous elevator
@@ -26,14 +37,14 @@ public interface Elevator extends ClosedBlock {
      * @return the previous floor
      */
     @NotNull
-    Optional<Elevator> getPrevious();
+    public abstract Optional<Elevator> getPrevious();
 
     /**
      * Get the elevator floor
      *
      * @return the current elevator floor
      */
-    int getFloor();
+    public abstract int getFloor();
 
     /**
      * Get the amount of floors
@@ -41,7 +52,7 @@ public interface Elevator extends ClosedBlock {
      *
      * @return the elevator floors
      */
-    int getFloors();
+    public abstract int getFloors();
 
     /**
      * Get the next elevator
@@ -50,7 +61,7 @@ public interface Elevator extends ClosedBlock {
      * @return the next floor
      */
     @NotNull
-    Optional<Elevator> getNext();
+    public abstract Optional<Elevator> getNext();
 
     /**
      * Get if the elevator has a
@@ -58,5 +69,5 @@ public interface Elevator extends ClosedBlock {
      *
      * @return if the elevator has next floor
      */
-    boolean hasNext();
+    public abstract boolean hasNext();
 }

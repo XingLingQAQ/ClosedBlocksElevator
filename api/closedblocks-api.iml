@@ -3,6 +3,7 @@
   <component name="AdditionalModuleElements">
     <content url="file://$MODULE_DIR$" dumb="true">
       <excludeFolder url="file://$MODULE_DIR$/v0.0.1" />
+      <excludeFolder url="file://$MODULE_DIR$/v0.0.2" />
     </content>
   </component>
   <component name="FacetManager">

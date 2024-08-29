@@ -1,10 +1,11 @@
-package com.github.karmadeb.closedblocks.plugin.provider.block;
+package com.github.karmadeb.closedblocks.plugin.provider.block.type.elevator;
 
-import com.github.karmadeb.closedblocks.api.block.BlockSettings;
-import com.github.karmadeb.closedblocks.api.block.SaveData;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
+import com.github.karmadeb.closedblocks.api.block.data.SaveData;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
+import com.github.karmadeb.closedblocks.plugin.provider.block.ClosedBlockSettings;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ElevatorBlock implements Elevator {
+public class ElevatorBlock extends Elevator {
 
     private final OfflinePlayer owner;
     private final World world;
@@ -24,6 +25,7 @@ public class ElevatorBlock implements Elevator {
 
     private ElevatorBlock next;
     private int floor;
+
     /*
     Atomic integer is the best choice here. Why?
     Because then we will only need to update the
@@ -52,7 +54,7 @@ public class ElevatorBlock implements Elevator {
         this.floors = floors;
 
         this.settings = settings;
-        this.saveData = new BlockSaveData(plugin, this);
+        this.saveData = new ElevatorSaveData(plugin, this);
     }
 
     /**
@@ -262,6 +264,6 @@ public class ElevatorBlock implements Elevator {
             return false;
 
         int distance = Math.abs(to.getY()) - Math.abs(from.getY());
-        return distance <= ElevatorConfig.MAX_DISTANCE.get();
+        return distance <= ElevatorConfig.MAX_DISTANCE.get().intValue();
     }
 }

@@ -1,13 +1,13 @@
 package com.github.karmadeb.closedblocks.plugin.util.inventory;
 
-import com.github.karmadeb.closedblocks.api.block.BlockSettings;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import es.karmadev.api.functional.inventory.helper.PagedInventory;
-import es.karmadev.api.functional.inventory.helper.page.InventoryPaginated;
+import com.github.karmadeb.functional.helper.Colorize;
+import com.github.karmadeb.functional.inventory.helper.PagedInventory;
+import com.github.karmadeb.functional.inventory.helper.page.InventoryPaginated;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -29,7 +29,7 @@ public class ClosedBlockManager {
                               final PagedInventory<InventoryPaginated> page, final ClosedBlock block,
                               final Runnable onFinish) {
         BlockSettings settings = block.getSettings();
-        this.inventory = Bukkit.createInventory(null, 36, ChatColor.translateAlternateColorCodes('&',
+        this.inventory = Bukkit.createInventory(null, 36, Colorize.colorize(
                 settings.getName().isEmpty() ?
                         String.format("&7Block at&3 %d&7,&3 %d&7,&3 %d",
                                 block.getX(), block.getY(), block.getZ()) : settings.getName()));
@@ -65,7 +65,7 @@ public class ClosedBlockManager {
         ItemMeta meta = item.getItemMeta();
         assert meta != null;
 
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', message.parse()));
+        meta.setDisplayName(Colorize.colorize( message.parse()));
         meta.addItemFlags(ItemFlag.values());
         item.setItemMeta(meta);
     }

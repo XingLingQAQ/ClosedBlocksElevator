@@ -1,21 +1,22 @@
 package com.github.karmadeb.closedblocks.plugin.util.version;
 
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import com.google.gson.*;
+import com.github.karmadeb.functional.helper.Colorize;
+import com.github.karmadeb.kson.element.JsonArray;
+import com.github.karmadeb.kson.element.JsonElement;
+import com.github.karmadeb.kson.element.JsonObject;
+import com.github.karmadeb.kson.parser.JsonParser;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -142,25 +143,25 @@ public final class VersionChecker {
     }
 
     private String color(final String str) {
-        return ChatColor.translateAlternateColorCodes('&', str);
+        return Colorize.colorize(str);
     }
 
     private void check() {
         if (requiresUpdate)
             return;
 
-        Gson gson = new GsonBuilder().setLenient().create();
         try {
             URL url = new URL(CHECK_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-            try (InputStream response = connection.getInputStream();
-                 InputStreamReader isr = new InputStreamReader(response, StandardCharsets.UTF_8)) {
+            try (InputStream response = connection.getInputStream()) {
+                JsonParser parser = JsonParser.create(response);
+                JsonElement parsed = parser.resolve();
 
-                JsonObject data = gson.fromJson(isr, JsonObject.class);
-                JsonObject stats = data.getAsJsonObject("stats");
+                JsonObject data = parsed.getAsObject();
+                JsonObject stats = data.getAsObject("stats");
 
-                int updates = stats.get("updates").getAsInt();
+                int updates = stats.getAsInteger("updates");
                 int maxPage = updates / 10;
                 int remaining = updates % 10;
                 if (remaining > 0)
@@ -179,20 +180,19 @@ public final class VersionChecker {
     }
 
     private void fetchChangelog(final int page) {
-        Gson gson = new GsonBuilder().setLenient().create();
-
         try {
             URL url = new URL(String.format(CHANGELOG_URL, page));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-            try (InputStream response = connection.getInputStream();
-                 InputStreamReader isr = new InputStreamReader(response, StandardCharsets.UTF_8)) {
+            try (InputStream response = connection.getInputStream()) {
+                JsonParser parser = JsonParser.create(response);
+                JsonElement parsed = parser.resolve();
 
-                JsonArray data = gson.fromJson(isr, JsonArray.class);
+                JsonArray data = parsed.getAsArray();
                 for (JsonElement element : data) {
-                    JsonObject updateInfo = element.getAsJsonObject();
+                    JsonObject updateInfo = element.getAsObject();
 
-                    this.updateId = updateInfo.get("id").getAsInt();
+                    this.updateId = updateInfo.getAsInteger("id");
                     String updateVersion = updateInfo.get("resource_version").getAsString();
                     if (updateVersion.equalsIgnoreCase(this.currentVersion)) {
                         fetchUpdateInfo(updateInfo);

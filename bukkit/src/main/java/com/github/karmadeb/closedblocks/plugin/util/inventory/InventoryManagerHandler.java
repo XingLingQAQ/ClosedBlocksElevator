@@ -1,13 +1,14 @@
 package com.github.karmadeb.closedblocks.plugin.util.inventory;
 
 import com.github.karmadeb.closedblocks.api.ClosedAPI;
+import com.github.karmadeb.closedblocks.api.block.BlockType;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
-import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessage;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import es.karmadev.api.functional.inventory.helper.page.InventoryPaginated;
+import com.github.karmadeb.functional.helper.Colorize;
+import com.github.karmadeb.functional.inventory.helper.page.InventoryPaginated;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
@@ -117,26 +118,26 @@ class InventoryManagerHandler implements Listener {
         ClosedBlock block = this.manager.getBlock();
         if (block instanceof Elevator) {
             String newName = message.trim().replace("\\u00a7", "§");
-            if (ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',
-                    newName)).isEmpty()) {
-                ElevatorMessage.RENAME_FAILED
-                        .send(player, MessageParameter.name(
+            if (ChatColor.stripColor(Colorize.colorize(newName)).isEmpty()) {
+                PluginMessages.RENAME_FAILED
+                        .send(player,
+                                MessageParameter.type(block),
+                                MessageParameter.name(
                                 newName.replace("&", "\\&")
                                         .replace("§", "\\§")
                         ));
                 return;
             }
 
-            Optional<Elevator> match = ClosedAPI.getInstance().getBlockStorage().getAllBlocks(Elevator.class)
+            Optional<Elevator> match = ClosedAPI.getInstance().getBlockStorage().getAllBlocks(BlockType.ELEVATOR)
                     .stream().filter((b) -> ChatColor.stripColor(
-                            ChatColor.translateAlternateColorCodes('&', b.getSettings().getName())
+                            Colorize.colorize(b.getSettings().getName())
                     ).equalsIgnoreCase(
-                            ChatColor.stripColor(
-                                    ChatColor.translateAlternateColorCodes('&', newName)
-                            )
+                            ChatColor.stripColor(Colorize.colorize(newName))
                     )).findAny();
             if (match.isPresent() && !match.get().equals(block)) {
-                ElevatorMessage.RENAME_ALREADY.send(player,
+                PluginMessages.RENAME_ALREADY.send(player,
+                        MessageParameter.type(block),
                         MessageParameter.name(newName));
                 return;
             }

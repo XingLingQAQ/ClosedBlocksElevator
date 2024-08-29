@@ -26,9 +26,8 @@ public class BBlockPlaceRemoveListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockRemove(BlockBreakEvent e) {
-        BlockBreakEventWrapper wrapper = new BlockBreakEventWrapper(integration.getPlugin(), e, e.getPlayer(),
-                e.getBlock());
-        if (PlaceRemoveListener.handleDestroy(wrapper, integration.createElevatorItem()))
+        BlockBreakEventWrapper wrapper = new BlockBreakEventWrapper(integration.getPlugin(), e, e.getPlayer(), e.getBlock());
+        if (PlaceRemoveListener.handleDestroy(wrapper))
             return;
 
         e.setCancelled(false);

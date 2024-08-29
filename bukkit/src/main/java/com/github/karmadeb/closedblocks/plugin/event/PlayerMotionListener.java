@@ -1,14 +1,16 @@
 package com.github.karmadeb.closedblocks.plugin.event;
 
+import com.github.karmadeb.closedblocks.api.ClosedAPI;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
+import com.github.karmadeb.closedblocks.api.block.type.Mine;
+import com.github.karmadeb.closedblocks.api.file.configuration.mine.MineConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessage;
 import com.github.karmadeb.closedblocks.api.util.NullableChain;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import com.github.karmadeb.closedblocks.plugin.util.BlockUtils;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -30,6 +32,7 @@ public class PlayerMotionListener implements Listener {
 
     private final ClosedBlocksPlugin plugin;
     private final Map<UUID, BukkitTask> denyUpLevel = new ConcurrentHashMap<>();
+    private final Map<UUID, StepData> steppedMine = new ConcurrentHashMap<>();
 
     private final Sound upSound = NullableChain.of(() -> tryGetSound("UI_TOAST_IN"))
             .or(() -> tryGetSound("TOAST_IN"))
@@ -48,6 +51,15 @@ public class PlayerMotionListener implements Listener {
             .or(() -> tryGetSound("ORB_PICKUP"))
             .or(() -> tryGetSound("NOTE_PLING"))
             .orElse(Sound.values()[2]);
+    private final Sound stepInSound = NullableChain.of(() -> tryGetSound("BLOCK_METAL_PRESSURE_PLATE_CLICK_ON"))
+            .or(() -> tryGetSound("METAL_PRESSURE_PLATE_CLICK_ON"))
+            .or(() -> tryGetSound("PRESSURE_PLATE_CLICK_ON"))
+            .orElse(Sound.values()[4]);
+    private final Sound stepOutSound = NullableChain.of(() -> tryGetSound("BLOCK_METAL_PRESSURE_PLATE_CLICK_OFF"))
+            .or(() -> tryGetSound("METAL_PRESSURE_PLATE_CLICK_OFF"))
+            .or(() -> tryGetSound("PRESSURE_PLATE_CLICK_OFF"))
+            .orElse(Sound.values()[5]);
+
 
     public PlayerMotionListener(final ClosedBlocksPlugin plugin) {
         this.plugin = plugin;
@@ -94,8 +106,61 @@ public class PlayerMotionListener implements Listener {
         if (to == null)
             return;
 
-        if (from.getY() < to.getY())
+        if (from.getY() < to.getY()) {
             handleJump(e);
+            return;
+        }
+
+        handleStep(to, player);
+    }
+
+    @SuppressWarnings("t")
+    private void handleStep(final Location to, final Player player) {
+        Block block = to.getBlock();
+        if (!ClosedAPI.getInstance().getBlockStorage().isClosedBlock(to.getBlock()))
+            block = block.getRelative(BlockFace.DOWN);
+
+        StepData step = this.steppedMine.get(player.getUniqueId());
+        if (step != null) {
+            Block stepBlock = step.block;
+            Mine mine = step.mine;
+
+            if (!stepBlock.equals(block)) {
+                handleMineStep(player, mine, stepBlock);
+                return;
+            }
+
+            return;
+        }
+
+        if (ClosedAPI.getInstance().getBlockStorage().isClosedBlock(block)) {
+            String type = getClosedType(block);
+            if (type == null || !type.equals("mine"))
+                return;
+
+            Mine cb = (Mine) ClosedBlocksAPI.getInstance().getBlockStorage().getFromBlock(block).orElse(null);
+            if (player.isSneaking() || cb == null || !cb.getSettings().isEnabled() || cb.isDefused())
+                return;
+
+            if (!MineConfig.OWNER_TRIGGER.get() && cb.getOwner().getUniqueId().equals(player.getUniqueId())) return;
+
+            StepData data = new StepData();
+            this.steppedMine.put(player.getUniqueId(), data);
+
+            player.getWorld().playSound(block.getLocation(), stepInSound, 2f, 2f);
+            data.block = block;
+            data.mine = cb;
+        }
+    }
+
+    private void handleMineStep(final Player player, final Mine cb, final Block block) {
+        this.steppedMine.remove(player.getUniqueId());
+
+        if (!ClosedAPI.getInstance().getBlockStorage().destroyBlock(cb))
+            return;
+
+        player.getWorld().playSound(block.getLocation(), stepOutSound, 2f, 0f);
+        BlockUtils.explodeMine(cb);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -177,5 +242,10 @@ public class PlayerMotionListener implements Listener {
             return Sound.valueOf(name);
         } catch (IllegalArgumentException ignored) {}
         return null;
+    }
+
+    private static class StepData {
+        public Mine mine;
+        public Block block;
     }
 }

@@ -1,4 +1,4 @@
-package com.github.karmadeb.closedblocks.api.block;
+package com.github.karmadeb.closedblocks.api.block.data;
 
 /**
  * Represents a block save data
