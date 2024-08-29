@@ -1,0 +1,39 @@
+##############################################
+#        ClosedBlocks configuration          #
+#                                            #
+# https://www.spigotmc.org/resources/105696/ #
+##############################################
+
+# Default mine power
+DefaultPower: 2
+
+# Mine max power
+MaxPower: 16
+
+# If the mine causes fire by
+# default
+FireByDefault: false
+
+# If the mine can be triggered
+# by its owner
+OwnerTriggers: true
+
+# Griefing configuration for
+# mine blocks
+#
+# ChainedExplosion: Explodes the mine when another
+#                   explosion occurs
+# IgniteExplosion: Explodes the mine when it touches
+#                  fire
+# PickupExplode: Explodes when an entity such an enderman
+#                tries to pick up the mine. If this is set
+#                to false, the entity won't be ble to pick up
+#                the block anyway
+Griefing:
+  ChainedExplosion: true
+  IgniteExplosion: true
+  PickupExplode: true
+
+# Specifies the amount of max usages for
+# the diffuser item
+DiffuserMaxUsages: 255

@@ -1,78 +1,67 @@
 package com.github.karmadeb.closedblocks.plugin.provider.block;
 
-import com.github.karmadeb.closedblocks.api.ClosedAPI;
-import com.github.karmadeb.closedblocks.api.block.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
-import com.github.karmadeb.closedblocks.api.block.SaveData;
-import com.github.karmadeb.closedblocks.api.block.type.Elevator;
-import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
+import com.github.karmadeb.closedblocks.api.block.data.SaveData;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import com.github.karmadeb.closedblocks.plugin.provider.storage.ClosedBlocksStorage;
-import es.karmadev.api.kson.JsonArray;
-import es.karmadev.api.kson.JsonInstance;
-import es.karmadev.api.kson.JsonObject;
-import es.karmadev.api.kson.KsonException;
-import es.karmadev.api.kson.io.JsonReader;
-import es.karmadev.api.kson.io.JsonWriter;
+import com.github.karmadeb.closedblocks.plugin.util.JsonUtils;
+import com.github.karmadeb.kson.element.JsonArray;
+import com.github.karmadeb.kson.element.JsonElement;
+import com.github.karmadeb.kson.element.JsonObject;
+import com.github.karmadeb.kson.printer.JsonPrinter;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public class BlockSaveData implements SaveData {
+public abstract class BlockSaveData<T extends ClosedBlock> implements SaveData {
 
-    private final ClosedBlocksPlugin plugin;
-    private final ClosedBlock block;
+    protected final ClosedBlocksPlugin plugin;
+    protected final T block;
 
-    public BlockSaveData(final ClosedBlocksPlugin plugin, final ClosedBlock block) {
+    public BlockSaveData(final ClosedBlocksPlugin plugin, final T block) {
         this.plugin = plugin;
         this.block = block;
     }
 
-    /**
-     * Tries to save the block
-     *
-     * @return if the block was saved
-     */
-    @Override
-    public boolean saveBlockData() {
-        Path blockFile = getBlockFile(this.block);
-        try(InputStream stream = Files.newInputStream(blockFile)) {
-            JsonInstance instance = getInstanceOfStream(stream);
-            JsonObject typeObject = extractTypeObject(instance);
+    protected final boolean save() {
+        return this.save(null);
+    }
 
-            int y = block.getY();
+    protected final boolean save(final Consumer<JsonObject> onBeforeSave) {
+        Path file = this.getBlockFile();
 
-            JsonObject yPos = tryGetObject(typeObject, String.valueOf(y));
-            BlockSettings settings = block.getSettings();
+        JsonElement element = JsonUtils.readFile(file);
+        if (!element.isObject())
+            element = new JsonObject();
 
-            yPos.put("name", settings.getName());
-            yPos.put("disguise", settings.getDisguise());
-            yPos.put("enabled", settings.isEnabled());
-            yPos.put("visible", settings.isVisible());
-            if (yPos.hasChild("particles"))
-                yPos.removeChild("particles");
+        JsonObject root = element.getAsObject();
 
-            JsonArray array = JsonArray.newArray(getJsonFullPath(yPos), "viewers");
-            settings.getViewers().forEach((e) -> array.add(e.toString()));
-            yPos.put("viewers", array);
+        String x = String.valueOf(this.block.getX());
+        String y = String.valueOf(this.block.getY());
+        String z = String.valueOf(this.block.getZ());
 
-            try (Writer writer = Files.newBufferedWriter(blockFile)) {
-                JsonWriter jWriter = new JsonWriter(instance);
-                jWriter.export(writer);
-            }
+        JsonObject xObject = getAsObject(root, x);
+        JsonObject zObject = getAsObject(xObject, z);
+        JsonObject typeObject = getAsObject(zObject, this.block.getType().plural());
+        JsonObject yObject = getAsObject(typeObject, y);
 
-            return true;
-        } catch (IOException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save block data", ex);
-            return false;
-        }
+        BlockSettings settings = this.block.getSettings();
+        yObject.set("name", settings.getName());
+        yObject.set("disguise", settings.getDisguise());
+        yObject.set("enabled", settings.isEnabled());
+        yObject.set("visible", settings.isVisible());
+
+        writeViewers(settings, yObject);
+        if (onBeforeSave != null)
+            onBeforeSave.accept(yObject);
+
+        return saveToFile(file, root);
     }
 
     /**
@@ -82,85 +71,58 @@ public class BlockSaveData implements SaveData {
      */
     @Override
     public boolean removeBlockData() {
-        Path blockFile = getBlockFile(this.block);
-        try(InputStream stream = Files.newInputStream(blockFile)) {
-            JsonInstance instance = getInstanceOfStream(stream);
-            JsonObject typeObject = extractTypeObject(instance);
+        Path file = this.getBlockFile();
 
-            int y = block.getY();
+        JsonElement element = JsonUtils.readFile(file);
+        if (!element.isObject())
+            element = new JsonObject();
 
-            if (!typeObject.hasChild(String.valueOf(y)))
-                return true;
+        JsonObject root = element.getAsObject();
 
-            typeObject.removeChild(String.valueOf(y));
-            try (Writer writer = Files.newBufferedWriter(blockFile)) {
-                JsonWriter jWriter = new JsonWriter(instance);
-                jWriter.export(writer);
-            }
+        String x = String.valueOf(this.block.getX());
+        String y = String.valueOf(this.block.getY());
+        String z = String.valueOf(this.block.getZ());
 
-            World world = block.getWorld();
-            Block blockAt = world.getBlockAt(block.getX(), y, block.getZ());
-            blockAt.removeMetadata("closed_type", plugin);
+        JsonObject xObject = getAsObject(root, x);
+        JsonObject zObject = getAsObject(xObject, z);
+        JsonObject typeObject = getAsObject(zObject, this.block.getType().plural());
+
+        typeObject.remove(y);
+        if (xObject.isEmpty()) {
+            xObject.destroy();
+        }
+
+        return saveToFile(file, root);
+    }
+
+    private boolean saveToFile(final Path file, final JsonObject root) {
+        try(Writer writer = Files.newBufferedWriter(file)) {
+            JsonPrinter<?> printer = root.getJsonPrinter();
+            printer.print(1, writer);
 
             return true;
         } catch (IOException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save block data", ex);
+            this.plugin.getLogger().log(Level.SEVERE, "Failed to save block data", ex);
             return false;
         }
     }
 
-    private JsonInstance getInstanceOfStream(final InputStream stream) {
-        JsonInstance jsonElement = null;
-        try {
-            jsonElement = JsonReader.read(stream);
-        } catch (KsonException ignored) {}
+    private void writeViewers(final BlockSettings settings, final JsonObject target) {
+        JsonArray array = new JsonArray();
+        for (OfflinePlayer viewer : settings.getViewers())
+            array.add(viewer.getUniqueId().toString());
 
-        if (jsonElement == null || !jsonElement.isObjectType())
-            jsonElement = JsonObject.newObject("", "");
-
-        return jsonElement;
+        target.set("viewers", array);
     }
 
-    private JsonObject extractTypeObject(JsonInstance jsonElement) {
-        JsonObject object = jsonElement.asObject();
-
-        int x = block.getX();
-        int z = block.getZ();
-
-        JsonObject xPos = tryGetObject(object, String.valueOf(x));
-        JsonObject zPos = tryGetObject(xPos, String.valueOf(z));
-
-        JsonObject typeObject = JsonObject.newObject(String.format("%d.%d", x, z), "unknown");
-        if (block instanceof Elevator) {
-            typeObject = tryGetObject(zPos, "elevators");
+    private JsonObject getAsObject(final JsonObject root, final String key) {
+        JsonElement element = root.get(key);
+        if (!element.isObject()) {
+            element = new JsonObject();
+            root.set(key, element);
         }
 
-        return typeObject;
-    }
-
-    private JsonObject tryGetObject(final JsonObject instance, final String key) {
-        JsonInstance element = instance.getChild(key);
-        if (element.isNull() || !element.isObjectType()) {
-            JsonObject obj = JsonObject.newObject(getJsonFullPath(instance), String.valueOf(key));
-            instance.put(key, obj);
-
-            return obj;
-        }
-
-        return element.asObject();
-    }
-
-    private String getJsonFullPath(final JsonObject object) {
-        String path = object.getPath();
-        String key = object.getKey();
-
-        if (path == null || path.trim().isEmpty())
-            return key;
-
-        if (key.trim().isEmpty())
-            return path;
-
-        return String.format("%s.%s", path, key);
+        return element.getAsObject();
     }
 
     private Path getBlockDirectory(final ClosedBlock block) {
@@ -170,7 +132,7 @@ public class BlockSaveData implements SaveData {
         return plugin.getDataPath().resolve("storage").resolve(ownerId);
     }
 
-    private Path getBlockFile(final ClosedBlock block) {
+    private Path getBlockFile() {
         Path directory = getBlockDirectory(block);
         World world = block.getWorld();
         Path worldDir = directory.resolve(world.getUID().toString().replace("-", ""));
@@ -187,6 +149,7 @@ public class BlockSaveData implements SaveData {
         if (!Files.exists(file)) {
             try {
                 Files.createFile(file);
+                Files.write(file, "{}".getBytes());
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

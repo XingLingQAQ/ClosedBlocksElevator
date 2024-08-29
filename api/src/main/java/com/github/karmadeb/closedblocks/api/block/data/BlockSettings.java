@@ -1,4 +1,4 @@
-package com.github.karmadeb.closedblocks.api.block;
+package com.github.karmadeb.closedblocks.api.block.data;
 
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;

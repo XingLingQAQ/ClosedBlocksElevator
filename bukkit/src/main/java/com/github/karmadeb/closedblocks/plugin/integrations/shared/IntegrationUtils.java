@@ -1,10 +1,13 @@
 package com.github.karmadeb.closedblocks.plugin.integrations.shared;
 
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.block.type.Mine;
 import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
-import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessage;
+import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
+import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
+import de.tr7zw.changeme.nbtapi.NBT;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,35 +18,43 @@ import java.util.Map;
 
 public class IntegrationUtils {
 
-    public static void removeElevator(final ClosedBlocksPlugin plugin, final Player player, final ClosedBlock block, final ItemStack elevatorItem) {
-        if (elevatorItem == null) {
-            plugin.getLogger().severe("Failed to obtain an elevator item");
-            ElevatorMessage.DESTROY_FAILED.send(player);
+    public static void removeClosedBlock(final ClosedBlocksPlugin plugin, final Player player, final ClosedBlock block, final ItemStack item) {
+        if (item == null) {
+            plugin.getLogger().severe("Failed to obtain an item");
+            PluginMessages.DESTROY_FAILED.send(player, MessageParameter.type(block));
             return;
+        }
+
+        if (block instanceof Mine) {
+            Mine mine = (Mine) block;
+            NBT.modify(item, (nbt) -> {
+                nbt.setFloat("power", mine.getPower());
+                nbt.setBoolean("fire", mine.causesFire());
+            });
         }
 
         PlayerInventory inventory = player.getInventory();
         if (!player.getGameMode().equals(GameMode.CREATIVE)) {
-            Map<Integer, ItemStack> fitResult = inventory.addItem(elevatorItem);
+            Map<Integer, ItemStack> fitResult = inventory.addItem(item);
             if (!fitResult.isEmpty()) {
-                ElevatorMessage.DESTROY_INVENTORY_FULL.send(player);
+                PluginMessages.DESTROY_INVENTORY_FULL.send(player, MessageParameter.type(block));
                 return;
             }
         }
 
         if (!ClosedBlocksAPI.getInstance().getBlockStorage().destroyBlock(block)) {
             if (!player.getGameMode().equals(GameMode.CREATIVE))
-                inventory.remove(elevatorItem);
+                inventory.remove(item);
 
-            ElevatorMessage.DESTROY_FAILED.send(player);
+            PluginMessages.DESTROY_FAILED.send(player, MessageParameter.type(block));
             return;
         }
 
-        ElevatorMessage.DESTROY_SUCCESS.send(player);
+        PluginMessages.DESTROY_SUCCESS.send(player, MessageParameter.type(block));
     }
 
-    public static boolean isIllegalType(final Material material) {
-        if (validateMaterialItself(material)) return true;
+    public static boolean isIllegalElevatorType(final Material material) {
+        if (invalidElevatorItself(material)) return true;
         String name = material.name();
 
         return name.endsWith("_DOOR") || name.endsWith("_TRAPDOOR") || name.endsWith("_BUTTON") ||
@@ -51,7 +62,7 @@ public class IntegrationUtils {
                 name.endsWith("HANGING_SIGN") || name.endsWith("_SIGN");
     }
 
-    private static boolean validateMaterialItself(Material material) {
+    private static boolean invalidElevatorItself(Material material) {
         if (material == null)
             return true;
 

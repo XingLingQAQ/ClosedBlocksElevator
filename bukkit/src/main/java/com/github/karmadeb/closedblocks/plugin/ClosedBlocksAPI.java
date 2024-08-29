@@ -4,6 +4,8 @@ import com.github.karmadeb.closedblocks.api.ClosedAPI;
 import com.github.karmadeb.closedblocks.api.file.configuration.Configuration;
 import com.github.karmadeb.closedblocks.api.file.messages.Messages;
 import com.github.karmadeb.closedblocks.api.integration.Integration;
+import com.github.karmadeb.closedblocks.api.item.RecipeManager;
+import com.github.karmadeb.closedblocks.plugin.loader.RecipeLoader;
 import com.github.karmadeb.closedblocks.plugin.provider.file.ConfigurationFile;
 import com.github.karmadeb.closedblocks.plugin.provider.file.MessagesFile;
 import com.github.karmadeb.closedblocks.plugin.provider.storage.ClosedBlocksStorage;
@@ -18,12 +20,14 @@ public class ClosedBlocksAPI extends ClosedAPI {
 
     private final ClosedBlocksPlugin plugin;
     private final ClosedBlocksStorage storage;
+    private final RecipeManager recipe;
     private final Messages messages;
     private final Configuration configuration;
 
     public ClosedBlocksAPI(final ClosedBlocksPlugin plugin) {
         this.plugin = plugin;
         this.storage = new ClosedBlocksStorage(plugin);
+        this.recipe = new RecipeLoader(plugin);
         this.messages = new MessagesFile(plugin);
         this.configuration = new ConfigurationFile(plugin);
     }
@@ -34,6 +38,7 @@ public class ClosedBlocksAPI extends ClosedAPI {
 
     public void shutdown() {
         integrations.forEach(this::removeIntegration);
+        this.recipe.unloadRecipes();
     }
 
     /**
@@ -77,6 +82,16 @@ public class ClosedBlocksAPI extends ClosedAPI {
             plugin.getLogger().info("Unloading ClosedBlock integration " + integration.getName());
             integration.unload();
         }
+    }
+
+    /**
+     * Get the recipe manager
+     *
+     * @return the recipe manager
+     */
+    @Override
+    public RecipeManager getRecipeManager() {
+        return this.recipe;
     }
 
     /**

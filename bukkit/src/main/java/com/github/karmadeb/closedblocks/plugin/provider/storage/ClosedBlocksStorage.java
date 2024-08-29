@@ -1,10 +1,11 @@
 package com.github.karmadeb.closedblocks.plugin.provider.storage;
 
+import com.github.karmadeb.closedblocks.api.block.BlockType;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.storage.BlockStorage;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
-import com.github.karmadeb.closedblocks.plugin.provider.block.ElevatorBlock;
+import com.github.karmadeb.closedblocks.plugin.provider.block.type.elevator.ElevatorBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -109,6 +110,8 @@ public class ClosedBlocksStorage extends BlockStorage {
                             block.getX(), block.getZ());
                 }
 
+                block.getWorld().getBlockAt(block.getX(), block.getY(), block.getZ())
+                        .removeMetadata("closed_type", this.plugin);
                 return true;
             }
 
@@ -141,10 +144,11 @@ public class ClosedBlocksStorage extends BlockStorage {
 
     private void recalculateElevatorLineFloors(final World world, final int x, final int z) {
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
-            Collection<ElevatorBlock> elevators = this.getAllBlocks(world, ElevatorBlock.class)
+            Collection<ElevatorBlock> elevators = this.getAllBlocks(world, BlockType.ELEVATOR)
                     .stream()
                     .filter((block) -> block.getX() == x && block.getZ() == z)
-                    .sorted(Comparator.comparingInt(ElevatorBlock::getY))
+                    .sorted(Comparator.comparingInt(Elevator::getY))
+                    .map(ElevatorBlock.class::cast)
                     .collect(Collectors.toList());
 
             int total = (int) elevators.stream().filter((b) -> b.getSettings().isEnabled())

@@ -30,7 +30,7 @@ public class IABlockPlaceRemoveListener implements Listener {
     public void onBlockBreak(CustomBlockBreakEvent e) {
         BlockBreakEventWrapper wrapper = new BlockBreakEventWrapper(integration.getPlugin(), e, e.getPlayer(),
                 e.getBlock());
-        if (PlaceRemoveListener.handleDestroy(wrapper, integration.getPlugin().getBukkitIntegration().createElevatorItem()))
+        if (PlaceRemoveListener.handleDestroy(wrapper))
             return;
 
         Block block = e.getBlock();

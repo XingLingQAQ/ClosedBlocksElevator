@@ -6,7 +6,7 @@
 
 	<groupId>com.github.karmadeb</groupId>
 	<artifactId>closedblocks</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.5</version>
 	<packaging>pom</packaging>
 
 	<name>ClosedBlocks</name>
@@ -51,17 +51,29 @@
 					<configuration>
 						<shadedArtifactAttached>false</shadedArtifactAttached>
 
+						<filters>
+							<filter>
+								<artifact>*:*</artifact>
+								<excludes>
+									<exclude>META-INF/MANIFEST.MF</exclude>
+									<exclude>META-INF/maven/**</exclude>
+									<exclude>LICENSE.txt</exclude>
+									<exclude>License-ASM.txt</exclude>
+								</excludes>
+							</filter>
+						</filters>
+
 						<relocations>
 							<relocation>
-								<pattern>es.karmadev.api.kson</pattern>
+								<pattern>com.github.karmadeb.kson</pattern>
 								<shadedPattern>com.github.karmadeb.closedblocks.shaded.kson</shadedPattern>
 							</relocation>
 							<relocation>
-								<pattern>es.karmadev.api.kyle</pattern>
+								<pattern>com.github.karmadeb.kyle</pattern>
 								<shadedPattern>com.github.karmadeb.closedblocks.shaded.kyle</shadedPattern>
 							</relocation>
 							<relocation>
-								<pattern>es.karmadev.api.functional</pattern>
+								<pattern>com.github.karmadeb.functional</pattern>
 								<shadedPattern>com.github.karmadeb.closedblocks.shaded.spigot</shadedPattern>
 							</relocation>
 
@@ -119,6 +131,16 @@
 			<url>https://repo.codemc.io/repository/maven-public/</url>
 		</repository>
 	</repositories>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>de.tr7zw</groupId>
+				<artifactId>item-nbt-api</artifactId>
+				<version>2.13.2</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>

@@ -2,6 +2,7 @@ package com.github.karmadeb.closedblocks.plugin.util;
 
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.particle.type.ParticleTypeBlock;
+import com.github.fierioziy.particlenativeapi.api.particle.type.ParticleTypeItemMotion;
 import com.github.fierioziy.particlenativeapi.api.particle.type.ParticleTypeMotion;
 import com.github.karmadeb.closedblocks.api.util.NullableChain;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
@@ -52,6 +53,30 @@ public final class ParticleUtils {
 
         ParticleTypeBlock particle = api.LIST_1_8.FALLING_DUST;
         spawnLineToTop(origin, particle, viewers);
+    }
+
+    public void playMineEffect(final Location origin, final Collection<? extends Player> viewers, final boolean fire, final boolean broke) {
+        if (api == null)
+            return;
+
+        ParticleTypeItemMotion particle = api.LIST_1_8.ITEM_CRACK;
+        for (int i = 0; i < 4; i++) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (int j = 0; j < 360; j++) {
+                    double angle = Math.toRadians(j);
+                    double x = origin.getX() + (0.5 * Math.cos(angle));
+                    double z = origin.getZ() + (0.5 * Math.sin(angle));
+                    double y = origin.getY();
+
+                    Location spawnLocation = new Location(origin.getWorld(), x, y, z);
+                    particle.of((broke ? Material.GRAY_CONCRETE : Material.TNT)).packet(false, spawnLocation)
+                            .sendTo(viewers);
+                }
+
+                if (fire)
+                    api.LIST_1_8.LAVA.packet(false, origin).sendTo(viewers);
+            }, 20 * i);
+        }
     }
 
     public boolean isInvalid() {

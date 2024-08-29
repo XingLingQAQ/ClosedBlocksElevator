@@ -1,0 +1,31 @@
+{
+	"pattern": [
+		"ADA",
+		"ABA",
+		"AAA"
+	],
+	"keys": {
+		"D": [
+			"IRON_BLOCK"
+		],
+		"A": [
+			"REDSTONE"
+		],
+		"B": [
+			"SHEARS"
+		]
+	},
+	"resolves": {
+		"name": "&3Mine diffuser &8(&7{usages}&3 usages&8)",
+		"type": "SHEARS",
+		"description": [
+			"&0&m----------------",
+			"",
+			"&7The mine diffuser allows you",
+			"&7to defuse any mine, but we aware",
+			"&7to not use it on any block, as the",
+			"&7durability will be affected even",
+			"&7if the block was&3&l not&7 a mine"
+		]
+	}
+}

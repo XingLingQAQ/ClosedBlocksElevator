@@ -1,6 +1,6 @@
 package com.github.karmadeb.closedblocks.plugin.provider.block;
 
-import com.github.karmadeb.closedblocks.api.block.BlockSettings;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -18,10 +18,12 @@ public class ClosedBlockSettings implements BlockSettings {
     private static final String EMPTY_STRING = "";
 
     private final ClosedBlocksPlugin plugin;
+
     private String name = EMPTY_STRING;
     private String disguise;
     private boolean enabled = true;
     private boolean visible = false;
+
     private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
 
     public ClosedBlockSettings(final @NotNull ClosedBlocksPlugin plugin, final String disguise) {

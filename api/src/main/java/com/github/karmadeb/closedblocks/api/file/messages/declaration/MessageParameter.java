@@ -2,6 +2,7 @@ package com.github.karmadeb.closedblocks.api.file.messages.declaration;
 
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
+import com.github.karmadeb.closedblocks.api.block.type.Mine;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.permissions.Permission;
@@ -226,6 +227,8 @@ public final class MessageParameter {
     public static MessageParameter type(final ClosedBlock type) {
         if (type instanceof Elevator)
             return create("type", "elevator");
+        if (type instanceof Mine)
+            return create("type", "mine");
 
         return create("type", type.getClass().getSimpleName().toLowerCase());
     }
@@ -316,6 +319,28 @@ public final class MessageParameter {
      */
     public static MessageParameter disguise(final String disguise) {
         return create("disguise", disguise);
+    }
+
+    /**
+     * Create a message parameter for {power}
+     * placeholder
+     *
+     * @param mine the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter power(final Mine mine) {
+        return create("power", mine.getPower());
+    }
+
+    /**
+     * Create a message parameter for {power}
+     * placeholder
+     *
+     * @param power the placeholder value
+     * @return the message parameter
+     */
+    public static MessageParameter power(final float power) {
+        return create("power", power);
     }
 
     /**
