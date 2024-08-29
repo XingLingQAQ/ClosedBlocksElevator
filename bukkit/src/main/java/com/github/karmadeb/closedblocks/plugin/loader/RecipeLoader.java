@@ -1,7 +1,10 @@
 package com.github.karmadeb.closedblocks.plugin.loader;
 
 import com.github.karmadeb.closedblocks.api.block.BlockType;
+import com.github.karmadeb.closedblocks.api.file.configuration.mine.MineConfig;
+import com.github.karmadeb.closedblocks.api.item.ItemType;
 import com.github.karmadeb.closedblocks.api.item.RecipeManager;
+import com.github.karmadeb.closedblocks.api.item.mine.MineDiffuser;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import com.github.karmadeb.closedblocks.plugin.util.JsonUtils;
 import com.github.karmadeb.closedblocks.plugin.util.MaterialUtils;
@@ -32,6 +35,7 @@ public final class RecipeLoader implements RecipeManager {
 
     private final ClosedBlocksPlugin plugin;
     private final Map<BlockType<?>, Set<ShapedRecipe>> loadedRecipes = new HashMap<>();
+    private final Map<ItemType, Recipe> specialRecipes = new HashMap<>();
 
     public RecipeLoader(final ClosedBlocksPlugin plugin) {
         this.plugin = plugin;
@@ -45,8 +49,10 @@ public final class RecipeLoader implements RecipeManager {
         if (!this.loadedRecipes.isEmpty())
             return;
 
-        for (BlockType<?> type: BlockType.values())
+        for (BlockType<?> type: BlockType.values()) {
             this.loadRecipe(type);
+            this.loadSpecialRecipes(type);
+        }
     }
 
     /**
@@ -101,6 +107,18 @@ public final class RecipeLoader implements RecipeManager {
         return Collections.unmodifiableCollection(this.loadedRecipes.getOrDefault(type, Collections.emptySet()));
     }
 
+    /**
+     * Get the registered recipe for
+     * the specified item type
+     *
+     * @param type the item type
+     * @return the item type recipe
+     */
+    @Override
+    public Recipe getRecipe(final ItemType type) {
+        return specialRecipes.get(type);
+    }
+
     private void loadRecipe(final BlockType<?> type) {
         Path typeRecipesDirectory = plugin.getDataPath().resolve("recipes").resolve(type.singular());
 
@@ -114,7 +132,7 @@ public final class RecipeLoader implements RecipeManager {
 
         int recipeCount = 0;
         for (Path file : files) {
-            ShapedRecipe recipe = makeRecipe(type, file, recipeCount);
+            ShapedRecipe recipe = makeRecipe(type, file, String.valueOf(recipeCount));
             if (recipe == null) continue;
 
             if (!Bukkit.addRecipe(recipe)) {
@@ -129,6 +147,31 @@ public final class RecipeLoader implements RecipeManager {
         }
 
         plugin.getLogger().info("Successfully loaded " + recipeCount + " recipe(s) for " + type.plural());
+    }
+
+    private void loadSpecialRecipes(final BlockType<?> type) {
+        Path typeRecipesDirectory = plugin.getDataPath().resolve("recipes").resolve(type.singular())
+                .resolve("special");
+
+        if (type.equals(BlockType.MINE)) {
+            Path diffuserRecipe = typeRecipesDirectory.resolve("diffuser.json");
+            boolean exportRecipe = !Files.exists(diffuserRecipe);
+
+            if (exportRecipe && failsToExportResource(String.format("%s/diffuser.recipe.json", type.singular()), typeRecipesDirectory.resolve("diffuser.json")))
+                throw new RuntimeException("Failed to export diffuser recipe for " + type.singular());
+
+            ShapedRecipe recipe = makeRecipe(type, diffuserRecipe, "diffuser");
+            if (recipe != null) {
+                specialRecipes.put(ItemType.DIFFUSER, recipe);
+
+                if (!Bukkit.addRecipe(recipe)) {
+                    specialRecipes.remove(ItemType.DIFFUSER);
+                    plugin.getLogger().warning("Failed to load diffuser recipe for mine");
+                } else {
+                    plugin.getLogger().info("Successfully loaded diffuser recipe for mine");
+                }
+            }
+        }
     }
 
     private boolean failsToCreateDirectory(final Path directory) {
@@ -179,25 +222,37 @@ public final class RecipeLoader implements RecipeManager {
         }
     }
 
-    private @Nullable ShapedRecipe makeRecipe(final BlockType<?> type, final Path file, final int recipeCount) {
+    private @Nullable ShapedRecipe makeRecipe(final BlockType<?> type, final Path file, final String recipeCount) {
         final String fileName = file.getFileName().toString();
+        return getRecipe(type, file, recipeCount, fileName);
+    }
 
+    @Nullable
+    private ShapedRecipe getRecipe(BlockType<?> type, Path file, String recipeCount, String fileName) {
+        JsonObject recipeData = asObject(file, fileName);
+        if (recipeData == null) return null;
+
+        ShapedRecipe recipe = readRecipe(recipeData, type, recipeCount);
+        if (recipe == null) {
+            plugin.getLogger().warning("Failed to create recipe from json file " + fileName);
+            return null;
+        }
+
+        return recipe;
+    }
+
+    private JsonObject asObject(final Path file, final String fileName) {
         JsonElement instance = JsonUtils.readFile(file);
         if (!instance.isObject()) {
             plugin.getLogger().warning("Failed to parse file " + fileName + " as a json object");
             return null;
         }
 
-        JsonObject recipeData = instance.getAsObject();
-        ShapedRecipe recipe = readRecipe(recipeData, type, recipeCount);
-        if (recipe == null) {
-            plugin.getLogger().warning("Failed to create recipe from json file " + fileName);
-            return null;
-        }
-        return recipe;
+        return instance.getAsObject();
     }
 
-    private ShapedRecipe readRecipe(final JsonObject data, final BlockType<?> type, final int recipeCount) {
+    @SuppressWarnings("DataFlowIssue")
+    private ShapedRecipe readRecipe(final JsonObject data, final BlockType<?> type, final String recipeCount) {
         if (!data.has("keys"))
             return null;
 
@@ -214,6 +269,20 @@ public final class RecipeLoader implements RecipeManager {
         ItemStack resultItem = getItem(data, type);
         if (resultItem == null)
             return null;
+
+        if (recipeCount.equals("diffuser")) {
+            NBT.modify(resultItem, (nbt) -> {
+                nbt.setString("closed_type", "mine_diffuser");
+                nbt.setInteger(MineDiffuser.MAX_USAGES_KEY, MineConfig.DIFFUSER_USAGES.get().intValue());
+                nbt.setInteger(MineDiffuser.USAGES_KEY, MineConfig.DIFFUSER_USAGES.get().intValue());
+                nbt.setString("original_name", Colorize.colorize(resultItem.getItemMeta().getDisplayName()));
+
+                nbt.modifyMeta((nb, meta) -> meta.setDisplayName(
+                        Colorize.colorize(meta.getDisplayName()
+                                .replace("{usages}", String.valueOf(MineConfig.DIFFUSER_USAGES.get().intValue())))
+                ));
+            });
+        }
 
         ShapedRecipe recipe = createRecipe(resultItem, type, recipeCount);
         if (recipe == null)
@@ -320,8 +389,8 @@ public final class RecipeLoader implements RecipeManager {
         return false;
     }
 
-    private ShapedRecipe createRecipe(final ItemStack result, final BlockType<?> type, final int recipeCount) {
-        NamespacedKey key = NamespacedKey.fromString(String.format("%s_%d", type.singular(), recipeCount), this.plugin);
+    private ShapedRecipe createRecipe(final ItemStack result, final BlockType<?> type, final String name) {
+        NamespacedKey key = NamespacedKey.fromString(String.format("%s_%s", type.singular(), name), this.plugin);
         if (key == null)
             return null;
 
@@ -339,15 +408,7 @@ public final class RecipeLoader implements RecipeManager {
                 continue;
 
             String rawMaterial = nat.getAsString();
-            Material parsedMaterial = MaterialUtils.getMatchingMaterial(rawMaterial, (ignored) -> true, () -> null);
-            ItemStack item = null;
-            if (parsedMaterial == null) {
-                if (plugin.getItemsAdderIntegration().has(rawMaterial)) {
-                    item = CustomBlock.getInstance(rawMaterial).getItemStack();
-                }
-            } else {
-                item = new ItemStack(parsedMaterial);
-            }
+            ItemStack item = parseMaterialChoice(rawMaterial);
             if (item == null || item.getType().isAir())
                 continue;
 
@@ -355,5 +416,20 @@ public final class RecipeLoader implements RecipeManager {
         }
 
         return choices;
+    }
+
+    private ItemStack parseMaterialChoice(final String rawMaterial) {
+        Material parsedMaterial = MaterialUtils.getMatchingMaterial(rawMaterial, (ignored) -> true, () -> null);
+
+        ItemStack item = null;
+        if (parsedMaterial == null) {
+            if (plugin.getItemsAdderIntegration().has(rawMaterial)) {
+                item = CustomBlock.getInstance(rawMaterial).getItemStack();
+            }
+        } else {
+            item = new ItemStack(parsedMaterial);
+        }
+
+        return item;
     }
 }

@@ -9,17 +9,14 @@ import com.github.karmadeb.closedblocks.api.file.configuration.elevator.Elevator
 import com.github.karmadeb.closedblocks.api.file.configuration.mine.MineConfig;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.util.BlockUtils;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +44,12 @@ public class BlockGriefListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockIgnite(BlockIgniteEvent e) {
-        handleBlockBurn(e, e.getPlayer(), e.getBlock());
+        handleBlockBurn(e, e.getBlock());
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockBurn(BlockBurnEvent e) {
-        handleBlockBurn(e, null, e.getBlock());
+        handleBlockBurn(e, e.getBlock());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -89,7 +86,7 @@ public class BlockGriefListener implements Listener {
     }
 
     @SuppressWarnings("t")
-    private void handleBlockBurn(final Cancellable e, final Player player, Block block) {
+    private void handleBlockBurn(final Cancellable e, Block block) {
         if (block == null) return;
 
         for (BlockFace face : BlockFace.values()) {
@@ -104,17 +101,6 @@ public class BlockGriefListener implements Listener {
                     return;
                 } else if (cb instanceof Mine) {
                     Mine mine = (Mine) cb;
-
-                    if (player != null && mine.getOwner().getUniqueId().equals(player.getUniqueId())) {
-                        int heldItemSlot = player.getInventory().getHeldItemSlot();
-                        ItemStack item = player.getInventory().getItem(heldItemSlot);
-
-                        if (item != null && item.getType().equals(Material.FLINT_AND_STEEL))
-                            BlockUtils.rightClickMine(heldItemSlot, item, mine, player);
-
-                        e.setCancelled(true);
-                        return;
-                    }
 
                     if (MineConfig.IGNITE_EXPLODE.get() && ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine))
                         BlockUtils.explodeMine(mine);

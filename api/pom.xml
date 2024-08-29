@@ -6,10 +6,16 @@
 	<parent>
 		<groupId>com.github.karmadeb</groupId>
 		<artifactId>closedblocks</artifactId>
-		<version>0.0.4</version>
+		<version>0.0.5</version>
 	</parent>
 
 	<artifactId>closedblocks-api</artifactId>
 
-
+	<dependencies>
+		<dependency>
+			<groupId>de.tr7zw</groupId>
+			<artifactId>item-nbt-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 </project>

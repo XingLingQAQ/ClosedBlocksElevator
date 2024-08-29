@@ -26,13 +26,15 @@ public class BlockUtils {
         int y = block.getY();
         int z = block.getZ();
 
+        world.getBlockAt(x, y, z).removeMetadata("closed_type", plugin);
+
         Bukkit.getScheduler().runTaskLater(plugin, () ->
                 world.createExplosion(x, y, z, block.getPower(), block.causesFire(), true), 10);
     }
 
     @SuppressWarnings("t")
     public static void rightClickMine(final int slot, final ItemStack item, final Mine mine, final Player player) {
-        if (item.getType().equals(Material.FLINT_AND_STEEL)) {
+        if (item.getType().equals(Material.BLAZE_ROD)) {
             if (mine.causesFire()) {
                 MineMessage.ALREADY_INCENDIARY.send(player);
             } else {

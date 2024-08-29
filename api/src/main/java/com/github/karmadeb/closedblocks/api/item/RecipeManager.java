@@ -42,4 +42,13 @@ public interface RecipeManager {
      * @return the block type recipes
      */
     Collection<? extends Recipe> getRecipes(final BlockType<?> type);
+
+    /**
+     * Get the registered recipe for
+     * the specified item type
+     *
+     * @param type the item type
+     * @return the item type recipe
+     */
+    Recipe getRecipe(final ItemType type);
 }

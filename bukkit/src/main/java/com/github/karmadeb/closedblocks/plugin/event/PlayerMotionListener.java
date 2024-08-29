@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.github.karmadeb.closedblocks.plugin.util.SoundUtils.tryGetSound;
+
 public class PlayerMotionListener implements Listener {
 
     private final ClosedBlocksPlugin plugin;
@@ -234,13 +236,6 @@ public class PlayerMotionListener implements Listener {
             } catch (Throwable ignored) {}
         }
 
-        return null;
-    }
-
-    private Sound tryGetSound(final String name) {
-        try {
-            return Sound.valueOf(name);
-        } catch (IllegalArgumentException ignored) {}
         return null;
     }
 

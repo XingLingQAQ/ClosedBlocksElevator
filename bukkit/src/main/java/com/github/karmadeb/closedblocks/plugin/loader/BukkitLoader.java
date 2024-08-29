@@ -6,6 +6,7 @@ import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import com.github.karmadeb.closedblocks.plugin.command.ClosedBlockCommand;
 import com.github.karmadeb.closedblocks.plugin.event.BlockGriefListener;
+import com.github.karmadeb.closedblocks.plugin.event.BlockInteractionListener;
 import com.github.karmadeb.closedblocks.plugin.event.PlayerMotionListener;
 import com.github.karmadeb.closedblocks.plugin.util.visualizer.BlockVisualizer;
 import com.github.karmadeb.closedblocks.plugin.util.ParticleUtils;
@@ -21,6 +22,7 @@ public final class BukkitLoader {
 
     private final ClosedBlocksPlugin plugin;
 
+    private BlockInteractionListener interactionListener;
     private PlayerMotionListener motionListener;
     private BlockGriefListener griefListener;
 
@@ -34,9 +36,11 @@ public final class BukkitLoader {
     }
 
     public void registerEvents() {
+        interactionListener = new BlockInteractionListener(this.plugin);
         motionListener = new PlayerMotionListener(this.plugin);
         griefListener = new BlockGriefListener();
 
+        Bukkit.getServer().getPluginManager().registerEvents(interactionListener, this.plugin);
         Bukkit.getServer().getPluginManager().registerEvents(motionListener, this.plugin);
         Bukkit.getServer().getPluginManager().registerEvents(griefListener, this.plugin);
     }
@@ -74,6 +78,7 @@ public final class BukkitLoader {
     }
 
     public void shutdown() {
+        HandlerList.unregisterAll(this.interactionListener);
         HandlerList.unregisterAll(this.motionListener);
         HandlerList.unregisterAll(this.griefListener);
 

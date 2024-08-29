@@ -8,6 +8,7 @@ import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.block.type.Mine;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
+import com.github.karmadeb.closedblocks.api.item.ItemType;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import com.github.karmadeb.closedblocks.plugin.util.inventory.ClosedBlockManager;
 import com.github.karmadeb.functional.helper.Colorize;
@@ -38,10 +39,11 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
     private static final String RELOAD_PERMISSION = "closedblocks.reload";
     private static final String GIVE_ELEVATOR_PERMISSION = "closedblocks.give.elevator";
     private static final String GIVE_MINE_PERMISSION = "closedblocks.give.mine";
+    private static final String GIVE_DIFFUSER_PERMISSION = "closedblocks.give.diffuser";
 
     private static final String[] ACTIONS = new String[]{"help", "give", "reload", "manage"};
     private static final String[] HELP_TYPES = new String[]{"give", "reload", "manage"};
-    private static final String[] GIVE_TYPES = new String[]{"elevator", "mine"};
+    private static final String[] GIVE_TYPES = new String[]{"elevator", "mine", "diffuser"};
 
     private final ClosedBlocksPlugin plugin;
 
@@ -400,6 +402,16 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                 player = Bukkit.getPlayer(target);
                 stack = ClosedAPI.createItem(BlockType.MINE);
                 break;
+            case "diffuser":
+                if (!sender.hasPermission(GIVE_DIFFUSER_PERMISSION)) {
+                    PluginMessages.PERMISSION.send(sender,
+                            MessageParameter.permission(GIVE_DIFFUSER_PERMISSION));
+                    return;
+                }
+
+                player = Bukkit.getPlayer(target);
+                stack = ClosedAPI.createItem(ItemType.DIFFUSER);
+                break;
             default:
                 PluginMessages.GIVE_UNKNOWN_BLOCK.send(sender,
                         MessageParameter.player(target),
@@ -415,7 +427,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
 
         int available = getAvailableSlots(player, stack);
         if (available >= amount) {
-            giveElevator(sender, blockType, amount, stack, player);
+            giveBlocks(sender, blockType, amount, stack, player);
         } else {
             PluginMessages.GIVE_INVENTORY_FULL.send(sender,
                     MessageParameter.player(player),
@@ -423,7 +435,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    private static void giveElevator(CommandSender sender, String blockType, int amount, ItemStack stack, Player player) {
+    private static void giveBlocks(CommandSender sender, String blockType, int amount, ItemStack stack, Player player) {
         int stacks = amount / 64;
         int remaining = amount % 64;
 

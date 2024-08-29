@@ -25,11 +25,15 @@ permissions:
     children:
       closedblocks.give.elevator: true
       closedblocks.give.mine: true
+      closedblocks.give.diffuser: true
   closedblocks.give.elevator:
     description: 'Permission to give closed blocks elevator blocks'
     default: 'op'
   closedblocks.give.mine:
     description: 'Permission to give closed blocks mine blocks'
+    default: op
+  closedblocks.give.diffuser:
+    description: 'Permission to give mine diffuser item'
     default: op
   closedblocks.reload:
     description: 'Permission to reload closed blocks plugin'

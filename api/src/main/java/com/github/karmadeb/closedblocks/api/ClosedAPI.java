@@ -8,6 +8,7 @@ import com.github.karmadeb.closedblocks.api.file.messages.Messages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageDeclaration;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.api.integration.Integration;
+import com.github.karmadeb.closedblocks.api.item.ItemType;
 import com.github.karmadeb.closedblocks.api.item.RecipeManager;
 import com.github.karmadeb.closedblocks.api.storage.BlockStorage;
 import org.bukkit.ChatColor;
@@ -137,6 +138,24 @@ public abstract class ClosedAPI {
                 return null;
 
             Recipe any = recipe.stream().findAny().orElse(null);
+            return any.getResult();
+        }
+
+        throw new IllegalStateException("ClosedAPI has not been yet initialized!");
+    }
+
+    /**
+     * Create an item of the specified
+     * item type
+     *
+     * @param type the item type
+     * @return the item type item
+     */
+    public static ItemStack createItem(final ItemType type) {
+        if (instance != null) {
+            RecipeManager manager = instance.getRecipeManager();
+            Recipe any = manager.getRecipe(type);
+
             return any.getResult();
         }
 

@@ -16,6 +16,7 @@ public final class MineConfig<T> implements FileDeclaration<T> {
     public static final FileDeclaration<Boolean> CHAIN_EXPLOSION = new MineConfig<>("Griefing.ChainedExplosion", true);
     public static final FileDeclaration<Boolean> IGNITE_EXPLODE = new MineConfig<>("Griefing.IgniteExplosion", true);
     public static final FileDeclaration<Boolean> PICKUP_EXPLODE = new MineConfig<>("Griefing.PickupExplode", true);
+    public static final FileDeclaration<Number> DIFFUSER_USAGES = new MineConfig<>("DiffuserMaxUsages", 255);
 
     private final String path;
     private final T value;

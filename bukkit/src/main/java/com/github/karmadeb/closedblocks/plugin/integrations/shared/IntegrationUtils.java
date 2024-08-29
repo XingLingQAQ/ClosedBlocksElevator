@@ -1,11 +1,13 @@
 package com.github.karmadeb.closedblocks.plugin.integrations.shared;
 
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.block.type.Mine;
 import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
+import de.tr7zw.changeme.nbtapi.NBT;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -16,16 +18,24 @@ import java.util.Map;
 
 public class IntegrationUtils {
 
-    public static void removeClosedBlock(final ClosedBlocksPlugin plugin, final Player player, final ClosedBlock block, final ItemStack elevatorItem) {
-        if (elevatorItem == null) {
-            plugin.getLogger().severe("Failed to obtain an elevator item");
+    public static void removeClosedBlock(final ClosedBlocksPlugin plugin, final Player player, final ClosedBlock block, final ItemStack item) {
+        if (item == null) {
+            plugin.getLogger().severe("Failed to obtain an item");
             PluginMessages.DESTROY_FAILED.send(player, MessageParameter.type(block));
             return;
         }
 
+        if (block instanceof Mine) {
+            Mine mine = (Mine) block;
+            NBT.modify(item, (nbt) -> {
+                nbt.setFloat("power", mine.getPower());
+                nbt.setBoolean("fire", mine.causesFire());
+            });
+        }
+
         PlayerInventory inventory = player.getInventory();
         if (!player.getGameMode().equals(GameMode.CREATIVE)) {
-            Map<Integer, ItemStack> fitResult = inventory.addItem(elevatorItem);
+            Map<Integer, ItemStack> fitResult = inventory.addItem(item);
             if (!fitResult.isEmpty()) {
                 PluginMessages.DESTROY_INVENTORY_FULL.send(player, MessageParameter.type(block));
                 return;
@@ -34,7 +44,7 @@ public class IntegrationUtils {
 
         if (!ClosedBlocksAPI.getInstance().getBlockStorage().destroyBlock(block)) {
             if (!player.getGameMode().equals(GameMode.CREATIVE))
-                inventory.remove(elevatorItem);
+                inventory.remove(item);
 
             PluginMessages.DESTROY_FAILED.send(player, MessageParameter.type(block));
             return;

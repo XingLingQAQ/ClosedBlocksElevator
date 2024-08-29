@@ -97,7 +97,22 @@ public class PlaceRemoveListener {
         
         if (cb instanceof Mine) {
             Mine mine = (Mine) cb;
-            if (ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine)) {
+            if (mine.isDefused()) {
+                if (ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine)) {
+                    ItemStack mineItem = ClosedAPI.createItem(BlockType.MINE);
+                    assert mineItem != null;
+
+                    NBT.modify(mineItem, (nbt) -> {
+                        nbt.setFloat("power", mine.getPower());
+                        nbt.setBoolean("fire", mine.causesFire());
+                    });
+
+                    player.getWorld().dropItemNaturally(block.getLocation(), mineItem);
+                    return true;
+                }
+
+                return false;
+            } else if (mine.getSettings().isEnabled() && ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine)) {
                 BlockUtils.explodeMine(mine);
                 return true;
             }
@@ -241,8 +256,20 @@ public class PlaceRemoveListener {
         int y = block.getY();
         int z = block.getZ();
 
-        float power = MineConfig.POWER.get().floatValue();
-        boolean fire = MineConfig.FIRE.get();
+        float power = NBT.get(item, (nbt) -> {
+            if (nbt.hasTag("power")) {
+                return nbt.getFloat("power");
+            }
+
+            return MineConfig.POWER.get().floatValue();
+        });
+        boolean fire = NBT.get(item, (nbt) -> {
+            if (nbt.hasTag("fire")) {
+                return nbt.getBoolean("fire");
+            }
+
+            return MineConfig.FIRE.get();
+        });
 
         MineBlock mine = new MineBlock(player, world, x, y, z, MineConfig.DISGUISE.get(), power, fire, false, event.getPlugin());
         if (ClosedBlocksAPI.getInstance().getBlockStorage().placeBlock(mine)) {

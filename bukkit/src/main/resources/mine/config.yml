@@ -33,3 +33,7 @@ Griefing:
   ChainedExplosion: true
   IgniteExplosion: true
   PickupExplode: true
+
+# Specifies the amount of max usages for
+# the diffuser item
+DiffuserMaxUsages: 255

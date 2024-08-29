@@ -110,6 +110,8 @@ public class ClosedBlocksStorage extends BlockStorage {
                             block.getX(), block.getZ());
                 }
 
+                block.getWorld().getBlockAt(block.getX(), block.getY(), block.getZ())
+                        .removeMetadata("closed_type", this.plugin);
                 return true;
             }
 
