@@ -2,6 +2,7 @@ package com.github.karmadeb.closedblocks.plugin;
 
 import com.github.karmadeb.closedblocks.api.event.plugin.ClosedPluginStateChangedEvent;
 import com.github.karmadeb.closedblocks.plugin.integrations.bukkit.BukkitIntegration;
+import com.github.karmadeb.closedblocks.plugin.integrations.discordsrv.DiscordSRVIntegration;
 import com.github.karmadeb.closedblocks.plugin.integrations.itemsadder.ItemsAdderIntegration;
 import com.github.karmadeb.closedblocks.plugin.loader.BlockLoader;
 import com.github.karmadeb.closedblocks.plugin.loader.BukkitLoader;
@@ -33,6 +34,7 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
     private final VersionChecker checker = new VersionChecker(this);
 
     private ItemsAdderIntegration itemsAdderIntegration;
+    private DiscordSRVIntegration discordSRVIntegration;
 
     @Override
     public void onEnable() {
@@ -55,7 +57,10 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
         Runnable task = () -> {
             BukkitIntegration integration = new BukkitIntegration(this);
+            discordSRVIntegration = new DiscordSRVIntegration(this);
+
             api.addIntegration(integration);
+            api.addIntegration(discordSRVIntegration);
 
             checker.start();
             sendThanksMessage();
@@ -126,6 +131,10 @@ public final class ClosedBlocksPlugin extends JavaPlugin {
 
     public ItemsAdderIntegration getItemsAdderIntegration() {
         return this.itemsAdderIntegration;
+    }
+
+    public DiscordSRVIntegration getDiscordSRVIntegration() {
+        return this.discordSRVIntegration;
     }
 
     public ParticleUtils getParticleAPI() {

@@ -1,0 +1,10 @@
+##############################################
+#        ClosedBlocks messages file          #
+#                                            #
+# https://www.spigotmc.org/resources/105696/ #
+##############################################
+
+# The discord channel ID for logging
+# player actions. This settings depends
+# directly into
+LogsChannelId: ""

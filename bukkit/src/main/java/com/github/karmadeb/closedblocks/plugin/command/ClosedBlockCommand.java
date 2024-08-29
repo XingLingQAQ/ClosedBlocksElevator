@@ -381,6 +381,9 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
         Player player;
         ItemStack stack;
 
+        BlockType<?> bt = null;
+        ItemType it = null;
+
         switch (blockType.toLowerCase()) {
             case "elevator":
                 if (!sender.hasPermission(GIVE_ELEVATOR_PERMISSION)) {
@@ -389,6 +392,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
 
+                bt = BlockType.ELEVATOR;
                 player = Bukkit.getPlayer(target);
                 stack = ClosedAPI.createItem(BlockType.ELEVATOR);
                 break;
@@ -399,6 +403,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
 
+                bt = BlockType.MINE;
                 player = Bukkit.getPlayer(target);
                 stack = ClosedAPI.createItem(BlockType.MINE);
                 break;
@@ -409,6 +414,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
 
+                it = ItemType.DIFFUSER;
                 player = Bukkit.getPlayer(target);
                 stack = ClosedAPI.createItem(ItemType.DIFFUSER);
                 break;
@@ -427,6 +433,12 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
 
         int available = getAvailableSlots(player, stack);
         if (available >= amount) {
+            if (bt != null) {
+                plugin.getDiscordSRVIntegration().grantBlockEmbed(sender, player, bt, amount);
+            } else {
+                plugin.getDiscordSRVIntegration().grantItemEmbed(sender, player, it, amount);
+            }
+
             giveBlocks(sender, blockType, amount, stack, player);
         } else {
             PluginMessages.GIVE_INVENTORY_FULL.send(sender,

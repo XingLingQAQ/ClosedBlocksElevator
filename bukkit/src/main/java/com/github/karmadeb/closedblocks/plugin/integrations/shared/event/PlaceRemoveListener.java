@@ -9,6 +9,7 @@ import com.github.karmadeb.closedblocks.api.block.type.Mine;
 import com.github.karmadeb.closedblocks.api.event.world.ClosedBlockDisguisedEvent;
 import com.github.karmadeb.closedblocks.api.event.world.ClosedBlockPlacedEvent;
 import com.github.karmadeb.closedblocks.api.event.world.ClosedBlockPreparePlaceEvent;
+import com.github.karmadeb.closedblocks.api.event.world.mine.MineTriggeredEvent;
 import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.api.file.configuration.mine.MineConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
@@ -39,11 +40,14 @@ import java.util.stream.Collectors;
 
 public class PlaceRemoveListener {
 
+    @SuppressWarnings("t")
     public static void handlePlacement(final BlockPlaceEventWrapper e) {
         Player player = e.getPlayer();
 
         int slot = player.getInventory().getHeldItemSlot();
-        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        ItemStack mainHand = player.getInventory().getItem(slot);
+        if (mainHand == null || mainHand.getType().isAir()) return;
+
         boolean isClosedBlock = NBT.get(mainHand, (Function<ReadableItemNBT, Boolean>) (nbt) -> nbt.hasTag("closed_type"));
         if (!isClosedBlock || player.isSneaking()) {
             if (player.isSneaking() && !isClosedBlock) return;
@@ -113,7 +117,7 @@ public class PlaceRemoveListener {
 
                 return false;
             } else if (mine.getSettings().isEnabled() && ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine)) {
-                BlockUtils.explodeMine(mine);
+                BlockUtils.explodeMine(mine, player, MineTriggeredEvent.Reason.BREAK, null);
                 return true;
             }
 
@@ -155,6 +159,7 @@ public class PlaceRemoveListener {
 
         BlockSettings settings = block.getSettings();
         String previousDisguise = settings.getDisguise();
+        String previousDisguiseName = settings.getDisguiseName();
         if (previousDisguise.equals(material.name()))
             return;
 
@@ -163,7 +168,7 @@ public class PlaceRemoveListener {
         World world = block.getWorld();
         Block blockAt = world.getBlockAt(block.getX(), block.getY(), block.getZ());
 
-        ClosedBlockDisguisedEvent event = new ClosedBlockDisguisedEvent(player, blockAt, block);
+        ClosedBlockDisguisedEvent event = new ClosedBlockDisguisedEvent(player, blockAt, block, previousDisguise, previousDisguiseName);
         Bukkit.getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
@@ -200,6 +205,7 @@ public class PlaceRemoveListener {
 
         BlockSettings settings = block.getSettings();
         String previousDisguise = settings.getDisguise();
+        String previousDisguiseName = settings.getDisguiseName();
         if (previousDisguise.equals(customBlock.getNamespacedID()))
             return true;
 
@@ -208,7 +214,7 @@ public class PlaceRemoveListener {
         World world = block.getWorld();
         Block blockAt = world.getBlockAt(block.getX(), block.getY(), block.getZ());
 
-        ClosedBlockDisguisedEvent event = new ClosedBlockDisguisedEvent(player, blockAt, block);
+        ClosedBlockDisguisedEvent event = new ClosedBlockDisguisedEvent(player, blockAt, block, previousDisguise, previousDisguiseName);
         Bukkit.getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {

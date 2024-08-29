@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.karmadeb</groupId>
 		<artifactId>closedblocks</artifactId>
-		<version>0.0.5</version>
+		<version>0.0.6</version>
 	</parent>
 
 	<artifactId>closedblocks-bukkit</artifactId>
@@ -82,6 +82,13 @@
 			<groupId>com.github.LoneDev6</groupId>
 			<artifactId>api-itemsadder</artifactId>
 			<version>3.6.1</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.discordsrv</groupId>
+			<artifactId>discordsrv</artifactId>
+			<version>1.28.0</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

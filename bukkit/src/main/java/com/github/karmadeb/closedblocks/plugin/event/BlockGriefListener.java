@@ -5,12 +5,14 @@ import com.github.karmadeb.closedblocks.api.block.BlockType;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.block.type.Mine;
+import com.github.karmadeb.closedblocks.api.event.world.mine.MineTriggeredEvent;
 import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.api.file.configuration.mine.MineConfig;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.util.BlockUtils;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -44,12 +46,12 @@ public class BlockGriefListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockIgnite(BlockIgniteEvent e) {
-        handleBlockBurn(e, e.getBlock());
+        handleBlockBurn(e, e.getIgnitingEntity(), e.getBlock());
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockBurn(BlockBurnEvent e) {
-        handleBlockBurn(e, e.getBlock());
+        handleBlockBurn(e, null, e.getBlock());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -64,7 +66,7 @@ public class BlockGriefListener implements Listener {
             } else if (cb instanceof Mine) {
                 Mine mine = (Mine) cb;
                 if (MineConfig.PICKUP_EXPLODE.get() && ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine))
-                    BlockUtils.explodeMine(mine);
+                    BlockUtils.explodeMine(mine, e.getEntity(), MineTriggeredEvent.Reason.PICKUP, null);
 
                 e.setCancelled(true);
             }
@@ -86,7 +88,7 @@ public class BlockGriefListener implements Listener {
     }
 
     @SuppressWarnings("t")
-    private void handleBlockBurn(final Cancellable e, Block block) {
+    private void handleBlockBurn(final Cancellable e, final Entity entity, final Block block) {
         if (block == null) return;
 
         for (BlockFace face : BlockFace.values()) {
@@ -103,13 +105,12 @@ public class BlockGriefListener implements Listener {
                     Mine mine = (Mine) cb;
 
                     if (MineConfig.IGNITE_EXPLODE.get() && ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine))
-                        BlockUtils.explodeMine(mine);
+                        BlockUtils.explodeMine(mine, entity, MineTriggeredEvent.Reason.FIRE, null);
                 }
             }
         }
     }
 
-    @SuppressWarnings("t")
     private void handleExplosion(final List<Block> blockList) {
         List<Block> toRemove = new ArrayList<>();
         for (Block block : blockList) {
@@ -120,11 +121,7 @@ public class BlockGriefListener implements Listener {
                 if (cb instanceof Elevator) {
                     handleElevatorExplosion(block, toRemove);
                 } else if (cb instanceof Mine) {
-                    Mine mine = (Mine) cb;
-
-                    if (MineConfig.CHAIN_EXPLOSION.get() && ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine)) {
-                        BlockUtils.explodeMine(mine);
-                    }
+                    toRemove.add(block);
                 }
             }
         }
@@ -143,7 +140,7 @@ public class BlockGriefListener implements Listener {
             } else if (cb instanceof Mine) {
                 Mine mine = (Mine) cb;
                 if (MineConfig.PICKUP_EXPLODE.get() && ClosedAPI.getInstance().getBlockStorage().destroyBlock(mine))
-                    BlockUtils.explodeMine(mine);
+                    BlockUtils.explodeMine(mine, null, MineTriggeredEvent.Reason.PISTON, null);
             }
         }
     }

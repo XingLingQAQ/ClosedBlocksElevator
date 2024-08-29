@@ -18,6 +18,8 @@ public class ClosedBlockDisguisedEvent extends PlayerEvent implements Cancellabl
 
     private final Block block;
     private final ClosedBlock closedBlock;
+    private final String previousDisguise;
+    private final String previousDisguiseName;
 
     private boolean cancelled = false;
 
@@ -28,11 +30,16 @@ public class ClosedBlockDisguisedEvent extends PlayerEvent implements Cancellabl
      * @param block the block that has been placed at
      * @param closedBlock the closed block that is being
      *                    placed
+     * @param previousDisguise the previous disguise
+     * @param previousDisguiseName the previous disguise name
      */
-    public ClosedBlockDisguisedEvent(final Player player, final Block block, final ClosedBlock closedBlock) {
+    public ClosedBlockDisguisedEvent(final Player player, final Block block, final ClosedBlock closedBlock,
+                                     final String previousDisguise, final String previousDisguiseName) {
         super(player);
         this.block = block;
         this.closedBlock = closedBlock;
+        this.previousDisguise = previousDisguise;
+        this.previousDisguiseName = previousDisguiseName;
     }
 
     /**
@@ -53,6 +60,24 @@ public class ClosedBlockDisguisedEvent extends PlayerEvent implements Cancellabl
      */
     public ClosedBlock getDisguisedBlock() {
         return this.closedBlock;
+    }
+
+    /**
+     * Get the previous disguise
+     *
+     * @return the previous disguise
+     */
+    public String getPreviousDisguise() {
+        return this.previousDisguise;
+    }
+
+    /**
+     * Get the previous disguise name
+     *
+     * @return the previous disguise name
+     */
+    public String getPreviousDisguiseName() {
+        return this.previousDisguiseName;
     }
 
     /**
