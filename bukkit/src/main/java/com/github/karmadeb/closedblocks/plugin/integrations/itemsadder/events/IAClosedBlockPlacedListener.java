@@ -1,7 +1,7 @@
 package com.github.karmadeb.closedblocks.plugin.integrations.itemsadder.events;
 
-import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.event.world.ClosedBlockPlacedEvent;
 import dev.lone.itemsadder.api.CustomBlock;
 import org.bukkit.block.Block;

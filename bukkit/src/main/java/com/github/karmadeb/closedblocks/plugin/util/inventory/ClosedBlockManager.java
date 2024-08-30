@@ -1,11 +1,12 @@
 package com.github.karmadeb.closedblocks.plugin.util.inventory;
 
-import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import com.github.karmadeb.functional.helper.Colorize;
 import com.github.karmadeb.functional.inventory.helper.PagedInventory;
+import com.github.karmadeb.functional.inventory.helper.functional.PageItemMeta;
 import com.github.karmadeb.functional.inventory.helper.page.InventoryPaginated;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,13 +22,14 @@ public class ClosedBlockManager {
     private final Inventory inventory;
     private final Player player;
     private final PagedInventory<InventoryPaginated> page;
+    private final PageItemMeta meta;
     private final ClosedBlock block;
     private final InventoryManagerHandler handler;
     private final Runnable onFinish;
 
     public ClosedBlockManager(final ClosedBlocksPlugin plugin, final Player player,
-                              final PagedInventory<InventoryPaginated> page, final ClosedBlock block,
-                              final Runnable onFinish) {
+                              final PagedInventory<InventoryPaginated> page, final PageItemMeta meta,
+                              final ClosedBlock block, final Runnable onFinish) {
         BlockSettings settings = block.getSettings();
         this.inventory = Bukkit.createInventory(null, 36, Colorize.colorize(
                 settings.getName().isEmpty() ?
@@ -37,6 +39,7 @@ public class ClosedBlockManager {
 
         this.player = player;
         this.page = page;
+        this.meta = meta;
         this.block = block;
         this.handler = new InventoryManagerHandler(plugin, this);
         this.onFinish = onFinish;
@@ -72,6 +75,10 @@ public class ClosedBlockManager {
 
     public PagedInventory<InventoryPaginated> getPage() {
         return this.page;
+    }
+
+    public PageItemMeta getMeta() {
+        return this.meta;
     }
 
     public Player getPlayer() {

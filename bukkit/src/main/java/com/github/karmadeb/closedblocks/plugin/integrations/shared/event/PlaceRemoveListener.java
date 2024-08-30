@@ -2,8 +2,8 @@ package com.github.karmadeb.closedblocks.plugin.integrations.shared.event;
 
 import com.github.karmadeb.closedblocks.api.ClosedAPI;
 import com.github.karmadeb.closedblocks.api.block.BlockType;
-import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.block.type.Mine;
 import com.github.karmadeb.closedblocks.api.event.world.ClosedBlockDisguisedEvent;
