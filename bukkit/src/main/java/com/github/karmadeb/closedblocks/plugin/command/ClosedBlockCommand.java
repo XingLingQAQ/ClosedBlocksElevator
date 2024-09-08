@@ -6,6 +6,7 @@ import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.block.type.Mine;
+import com.github.karmadeb.closedblocks.api.file.configuration.plugin.PluginConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.api.item.ItemType;
@@ -448,10 +449,12 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
 
         int available = getAvailableSlots(player, stack);
         if (available >= amount) {
-            if (bt != null) {
-                plugin.getDiscordSRVIntegration().grantBlockEmbed(sender, player, bt, amount);
-            } else {
-                plugin.getDiscordSRVIntegration().grantItemEmbed(sender, player, it, amount);
+            if (PluginConfig.LOG_BLOCK_GIVE.get()) {
+                if (bt != null) {
+                    plugin.getDiscordSRVIntegration().grantBlockEmbed(sender, player, bt, amount);
+                } else {
+                    plugin.getDiscordSRVIntegration().grantItemEmbed(sender, player, it, amount);
+                }
             }
 
             giveBlocks(sender, blockType, amount, stack, player);

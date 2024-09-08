@@ -4,6 +4,9 @@
 # https://www.spigotmc.org/resources/105696/ #
 ##############################################
 
+# Manages if the block can be crafted
+Crafting: true
+
 # Default elevator disguise
 Disguise: "QUARTZ_BLOCK"
 

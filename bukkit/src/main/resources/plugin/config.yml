@@ -4,7 +4,30 @@
 # https://www.spigotmc.org/resources/105696/ #
 ##############################################
 
-# The discord channel ID for logging
-# player actions. This settings depends
-# directly into
-LogsChannelId: ""
+# Manage which block logs are
+# logged into DiscordSRV
+#
+# BlockPlace: Enables/disables logging for
+#             when a player places a block
+#
+# BlockDisguise: Enables/disables logging for
+#                when a player disguises a block
+#
+# MineTriggered: Enables/disables logging for
+#                when a player triggers a mine.
+#                The chained settings enables/disables
+#                logging for chained explosions
+#
+# BlockGive: Enables/disables logging for when
+#            a player receives a closed block
+#            through a command
+DiscordSRV:
+  BlockPlace:
+    Elevator: true
+    Mine: true
+  BlockDisguise:
+    Elevator: true
+  MineTriggered:
+    Enabled: true
+    Chained: true
+  BlockGive: true

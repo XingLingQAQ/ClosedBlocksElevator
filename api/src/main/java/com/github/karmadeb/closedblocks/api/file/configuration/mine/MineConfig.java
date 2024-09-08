@@ -8,6 +8,8 @@ import com.github.karmadeb.closedblocks.api.file.configuration.declaration.FileD
  */
 public final class MineConfig<T> implements FileDeclaration<T> {
 
+    public static final FileDeclaration<Boolean> CRAFTING = new MineConfig<>("Crafting", true);
+    public static final FileDeclaration<Boolean> CRAFTING_DIFFUSER = new MineConfig<>("CraftingDiffuser", true);
     public static final FileDeclaration<String> DISGUISE = new MineConfig<>("Disguise", "AIR");
     public static final FileDeclaration<Number> POWER = new MineConfig<>("DefaultPower", 2f);
     public static final FileDeclaration<Number> MAX_POWER = new MineConfig<>("MaxPower", 16f);

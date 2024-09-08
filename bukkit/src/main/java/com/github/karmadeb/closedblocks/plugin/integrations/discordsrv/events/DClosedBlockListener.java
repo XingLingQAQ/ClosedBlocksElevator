@@ -1,11 +1,13 @@
 package com.github.karmadeb.closedblocks.plugin.integrations.discordsrv.events;
 
+import com.github.karmadeb.closedblocks.api.block.BlockType;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
 import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.type.Mine;
 import com.github.karmadeb.closedblocks.api.event.world.ClosedBlockDisguisedEvent;
 import com.github.karmadeb.closedblocks.api.event.world.ClosedBlockPlacedEvent;
 import com.github.karmadeb.closedblocks.api.event.world.mine.MineTriggeredEvent;
+import com.github.karmadeb.closedblocks.api.file.configuration.plugin.PluginConfig;
 import com.github.karmadeb.closedblocks.plugin.integrations.discordsrv.DiscordSRVIntegration;
 import github.scarsz.discordsrv.dependencies.jda.api.EmbedBuilder;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.MessageEmbed;
@@ -28,6 +30,12 @@ public class DClosedBlockListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockPlaced(ClosedBlockPlacedEvent e) {
+        ClosedBlock block = e.getPlacedBlock();
+        if (block.getType().equals(BlockType.ELEVATOR) && !PluginConfig.LOG_ELEVATOR_PLACE.get())
+            return;
+        if (block.getType().equals(BlockType.MINE) && !PluginConfig.LOG_MINE_PLACE.get())
+            return;
+
         MessageEmbed embed = createBlockPlaceEmbed(e);
         integration.async(() -> {
             TextChannel channel = integration.getClosedBlocksChannel();
@@ -37,6 +45,10 @@ public class DClosedBlockListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDisguised(ClosedBlockDisguisedEvent e) {
+        ClosedBlock block = e.getDisguisedBlock();
+        if (block.getType().equals(BlockType.ELEVATOR) && !PluginConfig.LOG_ELEVATOR_DISGUISE.get())
+            return;
+
         MessageEmbed embed = createBlockDisguisedEmbed(e);
         integration.async(() -> {
             TextChannel channel = integration.getClosedBlocksChannel();
@@ -46,6 +58,9 @@ public class DClosedBlockListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onMineTriggered(MineTriggeredEvent e) {
+        if (!PluginConfig.LOG_MINE_TRIGGER_ONCE.get()) return;
+        if (e.isChained() && !PluginConfig.LOG_MINE_TRIGGER_CHAIN.get()) return;
+
         MessageEmbed embed = createMineTriggerEmbed(e);
         integration.async(() -> {
             TextChannel channel = integration.getClosedBlocksChannel();

@@ -37,12 +37,12 @@ build/
 ### Mac OS ###
 .DS_Store
 
-/v0.0.1/
-/bukkit/v0.0.1/
-/api/v0.0.1/
 /bukkit/target/
 /api/target/
 /bukkit/dependency-reduced-pom.xml
+/v0.0.1/
+/bukkit/v0.0.1/
+/api/v0.0.1/
 /v0.0.2/
 /api/v0.0.2/
 /bukkit/v0.0.2/
@@ -58,3 +58,6 @@ build/
 /v0.0.6/
 /api/v0.0.6/
 /bukkit/v0.0.6/
+/v0.0.7/
+/api/v0.0.7/
+/bukkit/v0.0.7/

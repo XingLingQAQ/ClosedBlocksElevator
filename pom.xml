@@ -6,7 +6,7 @@
 
 	<groupId>com.github.karmadeb</groupId>
 	<artifactId>closedblocks</artifactId>
-	<version>0.0.6</version>
+	<version>0.0.7</version>
 	<packaging>pom</packaging>
 
 	<name>ClosedBlocks</name>
