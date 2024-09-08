@@ -10,7 +10,7 @@ You can compile the plugin by yourself, but you won't receive any kind of suppor
 - [ ] Backpacks
 - [ ] Connected chests
 - [ ] Turrets
-- [ ] Anti-personnel mine
+- [X] Anti-personnel mine
 - [ ] Player sensors
 
 # [DMCA](https://www.dmca.com/r/yymm73p)
