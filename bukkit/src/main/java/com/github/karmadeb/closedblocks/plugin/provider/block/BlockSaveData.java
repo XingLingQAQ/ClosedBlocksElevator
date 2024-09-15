@@ -95,6 +95,33 @@ public abstract class BlockSaveData<T extends ClosedBlock> implements SaveData {
         return saveToFile(file, root);
     }
 
+    /**
+     * Get if the block save data
+     * exists
+     *
+     * @return if the block exists
+     */
+    @Override
+    public boolean exists() {
+        Path file = this.getBlockFile();
+
+        JsonElement element = JsonUtils.readFile(file);
+        if (!element.isObject())
+            element = new JsonObject();
+
+        JsonObject root = element.getAsObject();
+
+        String x = String.valueOf(this.block.getX());
+        String y = String.valueOf(this.block.getY());
+        String z = String.valueOf(this.block.getZ());
+
+        JsonObject xObject = getAsObject(root, x);
+        JsonObject zObject = getAsObject(xObject, z);
+        JsonObject typeObject = getAsObject(zObject, this.block.getType().plural());
+
+        return typeObject.has(y);
+    }
+
     private boolean saveToFile(final Path file, final JsonObject root) {
         try(Writer writer = Files.newBufferedWriter(file)) {
             JsonPrinter<?> printer = root.getJsonPrinter();

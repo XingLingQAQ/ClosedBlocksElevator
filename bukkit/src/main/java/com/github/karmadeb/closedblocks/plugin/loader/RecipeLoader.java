@@ -1,6 +1,7 @@
 package com.github.karmadeb.closedblocks.plugin.loader;
 
 import com.github.karmadeb.closedblocks.api.block.BlockType;
+import com.github.karmadeb.closedblocks.api.file.configuration.elevator.ElevatorConfig;
 import com.github.karmadeb.closedblocks.api.file.configuration.mine.MineConfig;
 import com.github.karmadeb.closedblocks.api.item.ItemType;
 import com.github.karmadeb.closedblocks.api.item.RecipeManager;
@@ -130,14 +131,23 @@ public final class RecipeLoader implements RecipeManager {
         if (files == null)
             throw new RuntimeException("Failed to load recipes for " + type.singular());
 
+        boolean registerToBukkit = true;
+        if (type.equals(BlockType.ELEVATOR)) {
+            registerToBukkit = ElevatorConfig.CRAFTING.get();
+        } else if (type.equals(BlockType.MINE)) {
+            registerToBukkit = MineConfig.CRAFTING.get();
+        }
+
         int recipeCount = 0;
         for (Path file : files) {
             ShapedRecipe recipe = makeRecipe(type, file, String.valueOf(recipeCount));
             if (recipe == null) continue;
 
-            if (!Bukkit.addRecipe(recipe)) {
+            if (registerToBukkit && !Bukkit.addRecipe(recipe)) {
                 plugin.getLogger().warning("Failed to register one recipe");
                 continue;
+            } else if (!registerToBukkit) {
+                plugin.getLogger().warning("Not registering recipe " + recipe.getKey().getKey() + " because recipes for " + type.plural() + " has been disabled");
             }
 
             Set<ShapedRecipe> typeRecipes = loadedRecipes.computeIfAbsent(type, (s) -> new HashSet<>());
@@ -163,6 +173,10 @@ public final class RecipeLoader implements RecipeManager {
             ShapedRecipe recipe = makeRecipe(type, diffuserRecipe, "diffuser");
             if (recipe != null) {
                 specialRecipes.put(ItemType.DIFFUSER, recipe);
+                if (!MineConfig.CRAFTING_DIFFUSER.get()) {
+                    plugin.getLogger().info("Successfully loaded diffuser recipe for mine");
+                    return;
+                }
 
                 if (!Bukkit.addRecipe(recipe)) {
                     specialRecipes.remove(ItemType.DIFFUSER);

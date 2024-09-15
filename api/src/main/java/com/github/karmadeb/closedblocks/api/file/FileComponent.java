@@ -6,7 +6,7 @@ package com.github.karmadeb.closedblocks.api.file;
  * "elevators", or "backpacks"
  */
 public enum FileComponent {
-    PLUGIN("plugin", "", false, true),
+    PLUGIN("plugin", "", true, true),
     ELEVATOR("elevator", true, true),
     MINE("mine", true, true);
 

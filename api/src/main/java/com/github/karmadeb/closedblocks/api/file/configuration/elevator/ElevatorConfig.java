@@ -11,6 +11,7 @@ import java.util.List;
  */
 public final class ElevatorConfig<T> implements FileDeclaration<T> {
 
+    public static final FileDeclaration<Boolean> CRAFTING = new ElevatorConfig<>("Crafting", true);
     public static final FileDeclaration<String> DISGUISE = new ElevatorConfig<>("Disguise", "QUARTZ_BLOCK");
     public static final FileDeclaration<Number> MAX_DISTANCE = new ElevatorConfig<>("MaxDistance", 64);
     public static final FileDeclaration<Boolean> ALLOW_BREAK = new ElevatorConfig<>("Griefing.AllowBreak", false);

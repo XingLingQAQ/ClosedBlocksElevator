@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.karmadeb</groupId>
 		<artifactId>closedblocks</artifactId>
-		<version>0.0.5</version>
+		<version>0.0.7</version>
 	</parent>
 
 	<artifactId>closedblocks-bukkit</artifactId>
@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>com.github.karmadeb</groupId>
 			<artifactId>functional-inventory</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
+			<version>1.0.2-SNAPSHOT</version>
 			<scope>compile</scope>
 			<exclusions>
 				<exclusion>
@@ -82,6 +82,13 @@
 			<groupId>com.github.LoneDev6</groupId>
 			<artifactId>api-itemsadder</artifactId>
 			<version>3.6.1</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.discordsrv</groupId>
+			<artifactId>discordsrv</artifactId>
+			<version>1.28.0</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

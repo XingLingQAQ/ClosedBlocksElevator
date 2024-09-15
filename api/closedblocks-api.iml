@@ -6,6 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/v0.0.2" />
       <excludeFolder url="file://$MODULE_DIR$/v0.0.3" />
       <excludeFolder url="file://$MODULE_DIR$/v0.0.4" />
+      <excludeFolder url="file://$MODULE_DIR$/v0.0.5" />
+      <excludeFolder url="file://$MODULE_DIR$/v0.0.6" />
+      <excludeFolder url="file://$MODULE_DIR$/v0.0.7" />
     </content>
   </component>
   <component name="FacetManager">

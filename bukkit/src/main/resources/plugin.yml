@@ -7,7 +7,7 @@ authors: [ 'KarmaDev' ]
 description: 'ClosedBlocks is a plugin which adds many blocks to minecraft in an easy way'
 load: 'POSTWORLD'
 
-softdepend: [ 'ItemsAdder' ]
+softdepend: [ 'ItemsAdder', 'DiscordSRV' ]
 
 permissions:
   closedblocks.update:

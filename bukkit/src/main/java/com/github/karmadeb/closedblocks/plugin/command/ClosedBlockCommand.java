@@ -2,10 +2,11 @@ package com.github.karmadeb.closedblocks.plugin.command;
 
 import com.github.karmadeb.closedblocks.api.ClosedAPI;
 import com.github.karmadeb.closedblocks.api.block.BlockType;
-import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.ClosedBlock;
+import com.github.karmadeb.closedblocks.api.block.data.BlockSettings;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.block.type.Mine;
+import com.github.karmadeb.closedblocks.api.file.configuration.plugin.PluginConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.PluginMessages;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.api.item.ItemType;
@@ -14,6 +15,7 @@ import com.github.karmadeb.closedblocks.plugin.util.inventory.ClosedBlockManager
 import com.github.karmadeb.functional.helper.Colorize;
 import com.github.karmadeb.functional.inventory.helper.PagedInventory;
 import com.github.karmadeb.functional.inventory.helper.functional.Action;
+import com.github.karmadeb.functional.inventory.helper.functional.PageItemMeta;
 import com.github.karmadeb.functional.inventory.helper.page.InventoryPaginated;
 import com.github.karmadeb.functional.inventory.helper.page.type.PageAction;
 import org.bukkit.Bukkit;
@@ -31,7 +33,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
@@ -216,8 +221,9 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
 
                 mapBlockInfoToItem(block, item);
 
-                page.setItem(j, item).onClick(createClickAction(player, page,
-                        block, j, item));
+                PageItemMeta meta = page.setItem(j, item);
+                meta.getFunction().onClick(createClickAction(player, page,
+                        block, meta));
             }
         }
 
@@ -225,19 +231,29 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
     }
 
     private Action<PagedInventory<InventoryPaginated>> createClickAction(final Player player, final PagedInventory<InventoryPaginated> page,
-                                                                         final ClosedBlock block, final int itemSlot, final ItemStack item) {
+                                                                         final ClosedBlock block, final PageItemMeta meta) {
         return PageAction.create(plugin)
                 .runNow(() -> {
-                    ClosedBlockManager manager = new ClosedBlockManager(this.plugin, player, page,
+                    if (!block.getSaveData().exists()) {
+                        PluginMessages.BLOCK_MANAGE_REMOVED.send(player);
+                        return;
+                    }
+
+                    ClosedBlockManager manager = new ClosedBlockManager(this.plugin, player, page, meta,
                             block, () -> {
+                        if (!block.getSaveData().exists())
+                            return;
+
                         if (block.getSaveData().saveBlockData()) {
+                            ItemStack item = meta.getItem();
+
                             mapBlockInfoToItem(block, item);
-                            page.setItem(itemSlot, item).onClick(
-                                    createClickAction(player, page, block, itemSlot, item)
-                            );
+                            page.updateItem(meta.getSlot(), item);
                         }
                     });
+
                     manager.open(player);
+                    this.plugin.setManagingBlock(player, manager);
                 });
     }
 
@@ -381,6 +397,9 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
         Player player;
         ItemStack stack;
 
+        BlockType<?> bt = null;
+        ItemType it = null;
+
         switch (blockType.toLowerCase()) {
             case "elevator":
                 if (!sender.hasPermission(GIVE_ELEVATOR_PERMISSION)) {
@@ -389,6 +408,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
 
+                bt = BlockType.ELEVATOR;
                 player = Bukkit.getPlayer(target);
                 stack = ClosedAPI.createItem(BlockType.ELEVATOR);
                 break;
@@ -399,6 +419,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
 
+                bt = BlockType.MINE;
                 player = Bukkit.getPlayer(target);
                 stack = ClosedAPI.createItem(BlockType.MINE);
                 break;
@@ -409,6 +430,7 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
 
+                it = ItemType.DIFFUSER;
                 player = Bukkit.getPlayer(target);
                 stack = ClosedAPI.createItem(ItemType.DIFFUSER);
                 break;
@@ -427,6 +449,14 @@ public class ClosedBlockCommand implements CommandExecutor, TabCompleter {
 
         int available = getAvailableSlots(player, stack);
         if (available >= amount) {
+            if (PluginConfig.LOG_BLOCK_GIVE.get()) {
+                if (bt != null) {
+                    plugin.getDiscordSRVIntegration().grantBlockEmbed(sender, player, bt, amount);
+                } else {
+                    plugin.getDiscordSRVIntegration().grantItemEmbed(sender, player, it, amount);
+                }
+            }
+
             giveBlocks(sender, blockType, amount, stack, player);
         } else {
             PluginMessages.GIVE_INVENTORY_FULL.send(sender,

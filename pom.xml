@@ -6,7 +6,7 @@
 
 	<groupId>com.github.karmadeb</groupId>
 	<artifactId>closedblocks</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.7</version>
 	<packaging>pom</packaging>
 
 	<name>ClosedBlocks</name>
@@ -129,6 +129,11 @@
 		<repository>
 			<id>codemc-repo</id>
 			<url>https://repo.codemc.io/repository/maven-public/</url>
+		</repository>
+
+		<repository>
+			<id>Scarsz-Nexus</id>
+			<url>https://nexus.scarsz.me/content/groups/public/</url>
 		</repository>
 	</repositories>
 

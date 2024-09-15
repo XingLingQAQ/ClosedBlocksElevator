@@ -3,6 +3,8 @@ package com.github.karmadeb.closedblocks.plugin.event;
 import com.github.karmadeb.closedblocks.api.ClosedAPI;
 import com.github.karmadeb.closedblocks.api.block.type.Elevator;
 import com.github.karmadeb.closedblocks.api.block.type.Mine;
+import com.github.karmadeb.closedblocks.api.event.world.elevator.ElevatorUsedEvent;
+import com.github.karmadeb.closedblocks.api.event.world.mine.MineTriggeredEvent;
 import com.github.karmadeb.closedblocks.api.file.configuration.mine.MineConfig;
 import com.github.karmadeb.closedblocks.api.file.messages.declaration.MessageParameter;
 import com.github.karmadeb.closedblocks.api.file.messages.elevator.ElevatorMessage;
@@ -10,7 +12,9 @@ import com.github.karmadeb.closedblocks.api.util.NullableChain;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksAPI;
 import com.github.karmadeb.closedblocks.plugin.ClosedBlocksPlugin;
 import com.github.karmadeb.closedblocks.plugin.util.BlockUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -162,7 +166,7 @@ public class PlayerMotionListener implements Listener {
             return;
 
         player.getWorld().playSound(block.getLocation(), stepOutSound, 2f, 0f);
-        BlockUtils.explodeMine(cb);
+        BlockUtils.explodeMine(cb, player, MineTriggeredEvent.Reason.STEP, null);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -202,8 +206,14 @@ public class PlayerMotionListener implements Listener {
         }
     }
 
-    private void useElevator(final Elevator current, final Elevator elevator, final Player player, final ElevatorMessage title, final ElevatorMessage subtitle, final Sound useSound) {
+    private void useElevator(final Elevator current, final Elevator elevator, final Player player,
+                             final ElevatorMessage title, final ElevatorMessage subtitle, final Sound useSound) {
         if (elevator == null) return;
+
+        ElevatorUsedEvent event = new ElevatorUsedEvent(player, current, elevator);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
 
         Location newLocation = player.getLocation().clone();
         newLocation.setX(elevator.getX() + 0.5);
